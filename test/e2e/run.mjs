@@ -55,9 +55,9 @@ try {
   await page.fill('.field.code', code);
   await page.click('button[type=submit]');
   await page.waitForSelector('textarea.field');
-  assert.match(await page.locator('.label').first().innerText(), /3 wishes left/i);
+  assert.match(await page.locator('.label').first().innerText(), /3 questions left/i);
   await shot(page, 'home');
-  log('the right code opens the app with three wishes');
+  log('the right code opens the app with three questions');
 
   console.log('a question we cannot answer');
   await page.fill('textarea.field', 'Which is the prettier city, Paris or Rome?');
@@ -66,7 +66,7 @@ try {
   await shot(page, 'refused');
   assert.match(await page.locator('.title').innerText(), /opinion/i);
   assert.equal((await (await page.request.get('/api/me')).json()).left, 3);
-  log('turned away, and no wish was spent');
+  log('turned away, and no question was used');
   await page.click('text=Change it');
 
   console.log('a vague question');
@@ -74,19 +74,31 @@ try {
   await page.click('button[type=submit]');
   await page.waitForSelector('text=Change it');
   await shot(page, 'vague');
-  log('vague wording gets the hints and no wish is spent');
+  log('vague wording gets the hints and no question is used');
   await page.click('text=Change it');
 
-  console.log('a yes/no wish, start to finish');
+  console.log('the question as the dashboard shows it');
+  await page.fill('textarea.field', 'Will bitcoin close above 150000 dollars next year?');
+  await page.click('button[type=submit]');
+  await page.waitForSelector('text=Yes, ask it');
+  assert.match(await page.locator('.view').innerText(), /YES \/ NO\s*·\s*RESOLVES ON 31 DEC 2027/i);
+  assert.match(await page.locator('.view').innerText(), /You wrote:/);
+  assert.match(await page.locator('.view').innerText(), /Resolution criteria/i);
+  await shot(page, 'review-dashboard');
+  log('kind, resolution date, what we changed and why, resolution criteria');
+  await page.click('text=Change it');
+  await page.waitForSelector('textarea.field');
+
+  console.log('a yes / no question, start to finish');
   await page.fill('textarea.field', 'Will the Federal Reserve cut interest rates before the end of 2027?');
   await page.click('button[type=submit]');
-  await page.waitForSelector('text=Make the wish');
+  await page.waitForSelector('text=Yes, ask it');
   await shot(page, 'review');
   assert.match(await page.locator('.title').innerText(), /Federal Reserve/);
-  await page.click('text=Make the wish');
-  await page.waitForSelector('text=Your wish is being made');
+  await page.click('text=Yes, ask it');
+  await page.waitForSelector('text=Thinking');
   await shot(page, 'waiting');
-  log('sealed; one star goes out');
+  log('asked; one star goes out');
   await page.waitForSelector('text=Turn the dial', { timeout: 20_000 });
   await shot(page, 'lever-rest');
   assert.equal(await page.locator('.figure.hidden').count(), 1);
@@ -112,26 +124,26 @@ try {
   assert.equal(card.headers()['content-type'], 'image/png');
   log('the share picture renders');
 
-  console.log('a wish that fails is given back');
+  console.log('a question that fails is given back');
   await page.click('button.back');
   await page.waitForSelector('textarea.field');
   await page.fill('textarea.field', 'Will this wish fail before the end of 2027?');
   await page.click('button[type=submit]');
-  await page.waitForSelector('text=Make the wish');
-  await page.click('text=Make the wish');
-  await page.waitForSelector("text=couldn't be made", { timeout: 30_000 });
+  await page.waitForSelector('text=Yes, ask it');
+  await page.click('text=Yes, ask it');
+  await page.waitForSelector("text=couldn't be answered", { timeout: 30_000 });
   await shot(page, 'returned');
   const afterFail = await (await page.request.get('/api/me')).json();
   assert.equal(afterFail.left, 2);
-  log('failed, refunded: two wishes left');
+  log('failed, returned: two questions left');
   await page.click('text=Ask again');
 
-  console.log('a choice wish');
+  console.log('a choice question');
   await page.fill('textarea.field', 'Which of Likud, Yesh Atid or National Unity will win the most seats in 2027?');
   await page.click('button[type=submit]');
-  await page.waitForSelector('text=Make the wish');
+  await page.waitForSelector('text=Yes, ask it');
   await shot(page, 'review-choice');
-  await page.click('text=Make the wish');
+  await page.click('text=Yes, ask it');
   await page.waitForSelector('text=Turn the dial', { timeout: 20_000 });
   // turn the dial with a finger: a circle and a half round the middle
   const box = await page.locator('.dialbox svg').boundingBox();
@@ -153,23 +165,23 @@ try {
   assert.ok((await page.locator('.rank li').count()) >= 3);
   log('turned with a finger, the dial locks and the ring is cut by option');
 
-  console.log('a number wish, the last one');
+  console.log('a number question, the last one');
   await page.click('button.back');
   await page.fill('textarea.field', 'How much will a barrel of Brent crude cost on 30 June 2027?');
   await page.click('button[type=submit]');
-  await page.waitForSelector('text=Make the wish');
+  await page.waitForSelector('text=Yes, ask it');
   await shot(page, 'review-last');
-  await page.click('text=Make the wish');
+  await page.click('text=Yes, ask it');
   await page.waitForSelector('text=Turn the dial', { timeout: 20_000 });
   await page.click('button:has-text("Reveal")');
   await page.waitForTimeout(3300);
   await shot(page, 'lever-number');
   assert.match(await page.locator('.reading .sub').innerText(), /80% likely between/);
   await page.click('button.back');
-  await page.waitForSelector('text=Your wishes are made.');
+  await page.waitForSelector("text=You've asked all three.");
   await shot(page, 'home-done');
   assert.equal(await page.locator('textarea.field').count(), 0);
-  log('three wishes made: the input is gone');
+  log('three questions asked: the input is gone');
 
   const over = await page.evaluate(async () => (await fetch('/api/check', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: 'Will the Fed cut rates in 2027?' }) })).status);
   assert.equal(over, 200); // checking is free; sealing is what is limited

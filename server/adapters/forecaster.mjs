@@ -66,8 +66,9 @@ export function makeForecaster(config, fetchImpl = fetch) {
         cadence: 'once',
         runs: 'single',
         depth: f.depth,
+        // No max_seconds: the forecaster refuses a time limit it did not choose ("does not allow the
+        // time limit this launch chose"). WISH_TIMEOUT_MIN is our own backstop, in server/wishes.mjs.
         max_usd: config.wishMaxUsd,
-        max_seconds: Math.max(60, Math.round(config.wishTimeoutMin * 60 - 120)),
         launch: true,
       };
       if (q.kind === 'categorical') body.options = q.options;

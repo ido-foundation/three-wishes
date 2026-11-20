@@ -21,12 +21,12 @@ export function makeWishes({ db, config, forecaster, push, now = Date.now, log =
       if (!check || check.used || t - check.created_at > config.checkTtlMin * 60_000) {
         throw new HttpError(410, 'expired', 'That question has expired. Ask it again.');
       }
-      if (remaining(userId) <= 0) throw new HttpError(409, 'none_left', 'You have used your three wishes.');
+      if (remaining(userId) <= 0) throw new HttpError(409, 'none_left', 'You have asked all three questions.');
       const today = db
         .prepare('select count(*) as n from wishes where sealed_at >= ?')
         .get(startOfUtcDay(t)).n;
       if (today >= config.dailyLimit) {
-        throw new HttpError(409, 'daily_cap', 'Wishes are paused until tomorrow. Come back then.');
+        throw new HttpError(409, 'daily_cap', 'Questions are paused until tomorrow. Come back then.');
       }
       const question = JSON.parse(check.question_json);
       const id = uuid();

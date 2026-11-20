@@ -120,9 +120,19 @@ test('a good question returns only what a person may see, and a check to seal', 
   const r = (await c.post('/api/check', { text: Q_YES })).data;
   assert.equal(r.verdict, 'ok');
   assert.ok(r.checkId);
-  assert.deepEqual(Object.keys(r.question).sort(), ['close_date', 'kind', 'title']);
+  assert.deepEqual(Object.keys(r.question).sort(), ['close_date', 'criteria', 'kind', 'title']);
   assert.equal(r.question.kind, 'binary');
-  assert.equal(JSON.stringify(r).includes('resolution'), false);
+  assert.match(r.question.criteria, /^Resolves/);
+  const raw = JSON.stringify(r);
+  assert.equal(raw.includes('resolution_criteria') || raw.includes('"description"'), false, 'no raw fields');
+  assert.equal(r.rewrite, null, 'asked exactly as written: nothing was reworded');
+  const reworded = (await c.post('/api/check', { text: 'Will bitcoin close above 150000 dollars next year?' })).data;
+  assert.equal(reworded.verdict, 'ok');
+  assert.equal(reworded.question.title, 'Will bitcoin close above 150000 dollars in 2027?');
+  assert.equal(reworded.rewrite.from, 'Will bitcoin close above 150000 dollars next year?');
+  assert.match(reworded.rewrite.reason, /next year/);
+  const quiet = (await c.post('/api/check', { text: 'will the fed cut rates before the end of 2027' })).data;
+  assert.equal(quiet.rewrite, null, 'capital letters and a question mark are not worth mentioning');
 });
 
 test('sealing spends exactly one wish; a check seals once; three wishes, never four', async (t) => {

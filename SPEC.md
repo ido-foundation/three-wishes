@@ -15,6 +15,15 @@ people through invitations, in the style of Instinct, and it is meant to spread 
 says how an answer was reached: no sources, no reasoning, no model, no cost, no method. It shows
 the output only.
 
+### Words people see
+
+The app says **question**, **ask** and **answer**, never "wish" (the working name of the idea). Internally
+the code, the database and the API still say "wish". The Home Screen name is still "3 wishes" and is open
+(section 10). The question is shown as the forecasting dashboard shows it: **Yes / No**, **One of several**
+or **A number**; **Resolves on** a date; **Resolution criteria**; and, when the sharpening step reworded
+what was typed, "You wrote: …" and why. The answer screen has **How it resolves** (the same criteria).
+While a question is being answered the screen says **Thinking**, over the instrument searching.
+
 ## 2. Rules that shape every decision
 
 | # | Rule | Where it is enforced |
@@ -46,9 +55,11 @@ the output only.
       with a resolution date and resolution criteria, or lists what is vague.
    3. *Rules.* A date in the allowed window, 2 to 20 options for a choice, bounds and a unit for a
       number, one event not two.
-5. **Review.** The person sees the sharpened question in plain words (title, kind, date) and the
-   cost in wishes: "This uses one of your three wishes." Buttons: **Make the wish** and **Change it**.
-6. **Waiting.** The wish is sealed; one star goes out. The run takes minutes. The person can close
+5. **Review.** The person sees the sharpened question as the dashboard shows it (kind, resolution date,
+   the question, what was reworded and why, resolution criteria) and what it costs: "This uses one of
+   your questions." Buttons: **Yes, ask it** and **Change it**.
+6. **Thinking.** The question is asked; one star goes out. The screen shows the instrument thinking: rings
+   turning, the gold star searching round the dial, rings of light going out from the middle. The run takes minutes. The person can close
    the app. If they allowed notifications (installed app, iOS 16.4+), a notification says "Your
    wish is ready." Otherwise the app shows it next time it is opened.
 7. **The lever.** The answer is not shown at once. The lever rests; the person pulls it (drag, tap

@@ -1,4 +1,4 @@
-// Service worker: keeps the app opening when the network is slow, and receives "your wish is ready".
+// Service worker: keeps the app opening when the network is slow, and receives "your answer is ready".
 const CACHE = 'wishes-v1';
 const SHELL = [
   '/', '/styles.css', '/app.js', '/api.js', '/ui.js', '/lever-view.js', '/lib/lever.js',
@@ -45,7 +45,7 @@ self.addEventListener('push', (e) => {
   }
   e.waitUntil(
     self.registration.showNotification(data.title || '3 wishes', {
-      body: data.body || 'Your wish is ready.',
+      body: data.body || 'Your answer is ready.',
       icon: '/icons/icon-192.png',
       badge: '/icons/favicon-32.png',
       data: { url: data.url || '/' },

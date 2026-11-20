@@ -19,7 +19,7 @@ test('a yes/no answer points where its chance is', () => {
   const m = leverModel(Q, { kind: 'binary', p: 0.5 });
   assert.equal(m.angle, 0);
   assert.equal(m.figure, '50%');
-  assert.equal(m.caption, 'By 31 Mar 2027');
+  assert.equal(m.caption, 'Resolves on 31 Mar 2027');
   assert.deepEqual(m.scale.map((s) => s.text), ['0', '25', '50', '75', '100']);
   assert.equal(leverModel(Q, { kind: 'binary', p: 0.004 }).figure, '<1%');
   assert.equal(leverModel(Q, { kind: 'binary', p: 0.996 }).figure, '>99%');

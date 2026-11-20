@@ -1,4 +1,4 @@
-import { starPath, ringsMarkup, polar, fracToDeg } from './lib/lever.js';
+import { starPath, ringsMarkup, arm, polar, fracToDeg } from './lib/lever.js';
 
 /** Tiny element builder. Children may be nodes or strings (always set as text, never as HTML). */
 export function h(tag, attrs = {}, ...kids) {
@@ -30,9 +30,9 @@ export function starIcon({ spent = false, spending = false } = {}) {
   return s;
 }
 
-/** Three stars: the wishes. `left` are lit; the rest are outlines. `spending` makes the next one breathe. */
+/** Three stars: the questions. `left` are lit; the rest are outlines. `spending` makes the next one breathe. */
 export function starsRow(left, total = 3, { spending = false } = {}) {
-  const row = h('div', { class: 'stars', role: 'img', 'aria-label': `${left} of ${total} wishes left` });
+  const row = h('div', { class: 'stars', role: 'img', 'aria-label': `${left} of ${total} questions left` });
   for (let i = 0; i < total; i++) {
     const lit = i < left;
     row.append(starIcon({ spent: !lit, spending: spending && i === left - 1 }));
@@ -67,11 +67,12 @@ export function tickRing() {
   return s;
 }
 
-export const KIND_LABEL = { binary: 'Yes or no', categorical: 'One of several', numerical: 'A number' };
+// The names for the three kinds of question.
+export const KIND_LABEL = { binary: 'Yes / No', categorical: 'One of several', numerical: 'A number' };
 
-/** The three wishes as stars on an orbit round the seal. Lit ones are wishes left. */
+/** The three questions as stars on an orbit round the seal. Lit ones are questions left. */
 export function wishOrbit(left, total = 3) {
-  const s = svg('svg', { viewBox: '0 0 200 200', class: 'orbit', role: 'img', 'aria-label': `${left} of ${total} wishes left` });
+  const s = svg('svg', { viewBox: '0 0 200 200', class: 'orbit', role: 'img', 'aria-label': `${left} of ${total} questions left` });
   const at = (r, deg) => [100 + r * Math.sin((deg * Math.PI) / 180), 100 - r * Math.cos((deg * Math.PI) / 180)];
   let ticks = '';
   for (let i = 0; i < 72; i++) {
@@ -93,9 +94,12 @@ export function wishOrbit(left, total = 3) {
   return s;
 }
 
-/** The instrument turning by itself, for waiting: the same three rings, never locking. */
-export function waitingDial(small = false) {
-  const s = svg('svg', { viewBox: '0 0 400 400', class: `wait-dial${small ? ' small' : ''}`, 'aria-hidden': 'true' });
+/**
+ * The instrument thinking: the three rings turning, the gold star searching round the dial, and
+ * rings of light going out from the middle like a sounding. No words, nothing about how.
+ */
+export function thinkingDial(small = false) {
+  const s = svg('svg', { viewBox: '0 0 400 400', class: `think-dial${small ? ' small' : ''}`, 'aria-hidden': 'true' });
   let ticks = '';
   for (let i = 0; i <= 100; i++) {
     const deg = fracToDeg(i / 100);
@@ -107,7 +111,9 @@ export function waitingDial(small = false) {
     `<circle cx="200" cy="200" r="160" fill="none" stroke="#F2E9E4" stroke-width="1.25"/>` +
     `<path d="${ticks}" stroke="#F2E9E4" stroke-width="0.8" fill="none" opacity="0.85"/>` +
     `<circle cx="200" cy="200" r="122" fill="none" stroke="#F2E9E4" stroke-width="0.75" opacity="0.5"/>` +
-    ringsMarkup({ B: 0, C: 0, D: 0 }, { id: 'wait' }) +
+    ringsMarkup({ B: 0, C: 0, D: 0 }, { id: 'think' }) +
+    `<circle class="ping p0" cx="200" cy="200" r="14"/><circle class="ping p1" cx="200" cy="200" r="14"/><circle class="ping p2" cx="200" cy="200" r="14"/>` +
+    arm(0, { id: 'think-arm' }) +
     `<circle cx="200" cy="200" r="12" fill="none" stroke="#F2E9E4" stroke-width="1"/><circle cx="200" cy="200" r="4.5" fill="#F2E9E4"/>`;
   return s;
 }

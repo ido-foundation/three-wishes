@@ -1,5 +1,5 @@
 import { api, ApiError } from './api.js';
-import { h, starsRow, lockup, seal, wordmark, backButton, wishOrbit, waitingDial, starfield, KIND_LABEL } from './ui.js';
+import { h, starsRow, lockup, seal, wordmark, backButton, wishOrbit, thinkingDial, starfield, KIND_LABEL } from './ui.js';
 import { mountLever } from './lever-view.js';
 import { leverModel, fmtDate, percent } from './lib/lever.js';
 
@@ -85,7 +85,7 @@ function homeView({ text = state.draft, error = '' } = {}) {
   const me = state.me;
   const kids = [
     wishOrbit(me.left, me.total),
-    h('p', { class: 'label centered' }, me.left > 0 ? `${me.left} ${me.left === 1 ? 'wish' : 'wishes'} left` : ''),
+    h('p', { class: 'label centered' }, me.left > 0 ? `${me.left} ${me.left === 1 ? 'question' : 'questions'} left` : ''),
   ];
 
   if (me.left > 0) {
@@ -105,13 +105,13 @@ function homeView({ text = state.draft, error = '' } = {}) {
         ta, msg, ask),
     );
   } else {
-    kids.push(h('p', { class: 'title' }, 'Your wishes are made.'));
+    kids.push(h('p', { class: 'title' }, "You've asked all three."));
   }
 
   if (me.wishes.length) {
-    const list = h('ul', { class: 'list', 'aria-label': 'Your wishes' });
+    const list = h('ul', { class: 'list', 'aria-label': 'Your questions' });
     for (const w of me.wishes) list.append(h('li', {}, wishRow(w)));
-    kids.push(h('p', { class: 'label' }, 'Your wishes'), list);
+    kids.push(h('p', { class: 'label' }, 'Your questions'), list);
   }
   mount(view('home stack', ...kids));
 
@@ -137,7 +137,7 @@ function wishRow(w) {
         : h('span', { class: 'fig state' }, 'Reveal')
       : w.status === 'failed'
         ? h('span', { class: 'fig state' }, 'Returned')
-        : h('span', { class: 'fig state pulse' }, 'Waiting');
+        : h('span', { class: 'fig state pulse' }, 'Thinking');
   return h('button', { class: 'row', type: 'button', onclick: () => openWish(w) }, h('span', { class: 'q' }, w.question?.title ?? ''), fig);
 }
 
@@ -152,7 +152,7 @@ function openWish(w) {
 async function checkFlow(text) {
   state.draft = text;
   mount(
-    view('center', waitingDial(true), h('p', { class: 'label', role: 'status' }, 'One moment')),
+    view('center', thinkingDial(true), h('p', { class: 'label pulse', role: 'status' }, 'Thinking')),
   );
   let r;
   try {
@@ -181,10 +181,10 @@ function refusedView(text, r) {
 
 function reviewView(text, r) {
   const q = r.question;
-  const meta = [KIND_LABEL[q.kind], q.close_date ? `Resolves ${fmtDate(q.close_date)}` : null].filter(Boolean).join(' · ');
+  const meta = [KIND_LABEL[q.kind], q.close_date ? `Resolves on ${fmtDate(q.close_date)}` : null].filter(Boolean).join(' · ');
   const left = state.me.left;
   const status = h('p', { class: 'error', role: 'alert' });
-  const make = h('button', { class: 'btn', type: 'button' }, 'Make the wish');
+  const make = h('button', { class: 'btn', type: 'button' }, 'Yes, ask it');
   const stars = starsRow(left, state.me.total);
   make.addEventListener('click', async () => {
     make.disabled = true;
@@ -208,16 +208,19 @@ function reviewView(text, r) {
     view('stack',
       backButton(() => homeView({ text })),
       h('div', { class: 'grow' }),
-      h('p', { class: 'label' }, 'Your question'),
-      h('p', { class: 'title' }, q.title),
       h('p', { class: 'label lit' }, meta),
+      h('p', { class: 'title' }, q.title),
+      r.rewrite
+        ? h('p', { class: 'reword' }, h('b', {}, 'You wrote: '), `\u201C${r.rewrite.from}\u201D. `, r.rewrite.reason)
+        : null,
+      q.criteria ? [h('p', { class: 'label crit-label' }, 'Resolution criteria'), h('p', { class: 'criteria' }, q.criteria)] : null,
       q.kind === 'categorical' && q.options?.length
         ? h('p', { class: 'body' }, q.options.join(' · '))
         : null,
       ...(r.notes ?? []).map((n) => h('p', { class: 'body note' }, n)),
       h('div', { class: 'grow' }),
       stars,
-      h('p', { class: 'body' }, left === 1 ? 'This uses your last wish.' : 'This uses one of your wishes.'),
+      h('p', { class: 'body' }, left === 1 ? 'This is your last question.' : 'This uses one of your questions.'),
       status,
       h('div', { class: 'actions' }, make, h('button', { class: 'btn text', type: 'button', onclick: () => homeView({ text }) }, 'Change it')),
     ),
@@ -232,8 +235,8 @@ function waitingView(wish, { justSealed = false } = {}) {
     backButton(() => homeView()),
     starsRow(me.left, me.total),
     h('div', { class: 'grow' }),
-    h('div', { class: 'center-ring' }, waitingDial()),
-    h('p', { class: 'label pulse', role: 'status' }, 'Your wish is being made'),
+    h('div', { class: 'center-ring' }, thinkingDial()),
+    h('p', { class: 'label pulse', role: 'status' }, 'Thinking'),
     h('p', { class: 'title small' }, wish.question.title),
     h('p', { class: 'body' }, 'This can take a while. You can close the app.'),
     h('div', { class: 'grow' }),
@@ -273,7 +276,8 @@ function failedView(wish) {
       backButton(() => homeView()),
       h('div', { class: 'grow' }),
       h('p', { class: 'label' }, 'Returned'),
-      h('p', { class: 'title' }, "That wish couldn't be made. It's back with you."),
+      h('p', { class: 'title' }, "That one couldn't be answered."),
+      h('p', { class: 'body' }, "You haven't used a question."),
       h('p', { class: 'body' }, wish.question?.title ?? ''),
       h('div', { class: 'grow' }),
       h('div', { class: 'actions' }, h('button', { class: 'btn', type: 'button', onclick: () => homeView() }, 'Ask again')),
@@ -305,11 +309,16 @@ function leverView(wish, { shared = false, token = null, back = () => homeView()
   const pullBtn = h('button', { class: 'btn', type: 'button' }, 'Reveal');
   const actions = h('div', { class: 'actions' });
 
+  const startRevealed = shared ? false : wish.revealed;
+  const how = wish.question.criteria
+    ? h('details', { class: `how${startRevealed ? '' : ' hidden'}` }, h('summary', { class: 'label' }, 'How it resolves'), h('p', { class: 'criteria' }, wish.question.criteria))
+    : null;
   const lever = mountLever({
     question: wish.question,
     answer: wish.answer,
-    revealed: shared ? false : wish.revealed,
+    revealed: startRevealed,
     onReveal: () => {
+      how?.classList.remove('hidden');
       actions.replaceChildren(...doneActions());
       if (!shared && !wish.revealed) {
         wish.revealed = true;
@@ -334,6 +343,7 @@ function leverView(wish, { shared = false, token = null, back = () => homeView()
       lever.rank,
       h('div', { class: 'grow' }),
       actions,
+      how,
       shared ? wordmark() : null,
     ),
   );
@@ -348,7 +358,7 @@ async function share(button, wish, token) {
       let files;
       try {
         const blob = await (await fetch(cardUrl)).blob();
-        const file = new File([blob], 'wish.png', { type: 'image/png' });
+        const file = new File([blob], 'answer.png', { type: 'image/png' });
         if (navigator.canShare?.({ files: [file] })) files = [file];
       } catch {
         /* share the link alone */

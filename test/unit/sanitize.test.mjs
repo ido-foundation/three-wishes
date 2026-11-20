@@ -48,12 +48,13 @@ test('number: the median, and the range only when it is in order', () => {
   assert.equal(sanitizeAnswer('date', { value: 1 }), null, 'a kind we do not offer');
 });
 
-test('the question shows its title, kind, date, options and unit and nothing else', () => {
+test('the question shows its title, kind, date, resolution criteria, options and unit and nothing else', () => {
   const q = sanitizeQuestion({
     title: '  Will   it\nhappen? ', kind: 'categorical', close_date: '2027-01-01', options: ['A', ' B '], unit: 'x',
     description: 'long background', resolution_criteria: 'criteria text', lower_bound: 0,
   });
-  assert.deepEqual(q, { title: 'Will it happen?', kind: 'categorical', close_date: '2027-01-01', options: ['A', 'B'] });
+  assert.deepEqual(q, { title: 'Will it happen?', kind: 'categorical', close_date: '2027-01-01', criteria: 'criteria text', options: ['A', 'B'] });
+  assert.equal('description' in q || 'resolution_criteria' in q || 'lower_bound' in q, false, 'only the terms of resolution, not the background or the bounds');
   assert.equal(sanitizeQuestion({ kind: 'date', title: 'x' }), null);
   assert.equal(sanitizeQuestion({ kind: 'binary', title: 'x', close_date: 'soon' }).close_date, null);
 });

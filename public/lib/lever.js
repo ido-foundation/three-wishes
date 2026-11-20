@@ -104,7 +104,7 @@ export function leverModel(question, answer) {
       angle: fracToDeg(p),
       figure: percent(p),
       sub: 'chance of yes',
-      caption: by ? `By ${by}` : '',
+      caption: by ? `Resolves on ${by}` : '',
       scale: [0, 0.25, 0.5, 0.75, 1].map((f) => ({ f, text: String(Math.round(f * 100)) })),
       aria: `${percent(p)} chance of yes${by ? `, by ${by}` : ''}.`,
     };
@@ -136,7 +136,7 @@ export function leverModel(question, answer) {
       arcs,
       figure: percent(lead.p),
       sub: lead.label,
-      caption: by ? `Most likely · by ${by}` : 'Most likely',
+      caption: by ? `Most likely · resolves on ${by}` : 'Most likely',
       rows: [...answer.options],
       aria: `Most likely: ${lead.label}, ${percent(lead.p)}${by ? `, by ${by}` : ''}.`,
     };
@@ -161,7 +161,7 @@ export function leverModel(question, answer) {
     figure: bare(median),
     unit: word,
     sub: hasRange ? `80% likely between ${bare(low)} and ${bare(high)}${word ? ` ${word}` : ''}` : 'median',
-    caption: by ? `Median · by ${by}` : 'Median',
+    caption: by ? `Most likely value · resolves on ${by}` : 'Most likely value',
     scale: [0, 1, 2, 3, 4].map((i) => ({ f: i / 4, text: bare(sc.min + sc.step * i) })),
     aria: `Median ${fmtNumber(median, unit, { compact: true })}${hasRange ? `, 80% likely between ${fmtNumber(low, unit, { compact: true })} and ${fmtNumber(high, unit, { compact: true })}` : ''}${by ? `, by ${by}` : ''}.`,
   };

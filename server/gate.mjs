@@ -142,7 +142,7 @@ export function validateDraft(draft, { now, minDays, maxDays }) {
     q.upper_bound = draft.upper_bound;
     q.unit = String(draft.unit ?? '').trim().slice(0, 24) || null;
   }
-  return { ok: true, question: q, notes: hints };
+  return { ok: true, question: q, notes: hints, rewrite: { from: draft.title_as_written ?? null, reason: draft.title_reason ?? null } };
 }
 
 export function makeGate({ db, config, jev, forecaster, now = Date.now, log = console }) {
@@ -205,7 +205,12 @@ export function makeGate({ db, config, jev, forecaster, now = Date.now, log = co
       return { verdict: 'fix', reason: res.reason, message: res.message, hints: res.hints };
     }
     const checkId = record('ok', res.question);
-    return { verdict: 'ok', checkId, question: sanitizeQuestion(res.question), notes: res.notes };
+    // As the dashboard's Quick Create does: when the question was reworded, say what it was and why.
+    const flat = (s) => String(s ?? '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    const reason = String(res.rewrite.reason ?? '').replace(/\s+/g, ' ').trim().slice(0, 240);
+    const reworded = flat(res.question.title) !== flat(text);
+    const rewrite = reworded && reason ? { from: text, reason } : null;
+    return { verdict: 'ok', checkId, question: sanitizeQuestion(res.question), notes: res.notes, rewrite };
   }
 
   return { check };

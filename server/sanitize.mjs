@@ -15,6 +15,8 @@ export function sanitizeQuestion(q) {
     kind: q.kind,
     close_date: /^\d{4}-\d{2}-\d{2}$/.test(q.close_date ?? '') ? q.close_date : null,
   };
+  const criteria = str(q.resolution_criteria, 700);
+  if (criteria) out.criteria = criteria;
   if (q.kind === 'categorical') out.options = (q.options ?? []).map((o) => str(o, 120)).filter(Boolean).slice(0, 20);
   if (q.kind === 'numerical') out.unit = str(q.unit, 24) || null;
   return out;

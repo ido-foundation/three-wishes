@@ -49,11 +49,12 @@ export function makeFakeForecaster({ delayMs = 3000, now = Date.now } = {}) {
     async sharpen(text) {
       const t = text.trim();
       const lower = t.toLowerCase();
-      const title = (t[0].toUpperCase() + t.slice(1)).replace(/[?.!\s]*$/, '?');
+      const reworded = t.replace(/\bnext year\b/i, 'in 2027');
+      const title = (reworded[0].toUpperCase() + reworded.slice(1)).replace(/[?.!\s]*$/, '?');
       const today = now();
       const draft = {
         title,
-        title_reason: null,
+        title_reason: reworded !== t ? 'Made "next year" explicit as 2027.' : t === title ? null : 'Written as a clear question.',
         title_as_written: t,
         description: `The question asks: ${title} It is settled by a public source on the resolution date.`,
         resolution_criteria: 'Resolves by the figure or result published by the relevant official source on the resolution date.',
@@ -70,6 +71,7 @@ export function makeFakeForecaster({ delayMs = 3000, now = Date.now } = {}) {
       };
       const year = lower.match(/\b(20\d\d)\b/);
       if (year) draft.close_date = `${year[1]}-12-31`;
+      if (reworded !== t) draft.close_date = '2027-12-31';
       if (/\bsoon\b/.test(lower)) {
         // could not fill the date at all
         draft.close_date = null;
