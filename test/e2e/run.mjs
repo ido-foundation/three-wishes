@@ -87,12 +87,12 @@ try {
   await page.waitForSelector('text=Your wish is being made');
   await shot(page, 'waiting');
   log('sealed; one star goes out');
-  await page.waitForSelector('text=Pull the lever', { timeout: 20_000 });
+  await page.waitForSelector('text=Turn the dial', { timeout: 20_000 });
   await shot(page, 'lever-rest');
   assert.equal(await page.locator('.figure.hidden').count(), 1);
-  await page.click('button:has-text("Pull")');
+  await page.click('button:has-text("Reveal")');
   await page.waitForSelector('.figure:not(.hidden)');
-  await page.waitForTimeout(2300);
+  await page.waitForTimeout(3300);
   await shot(page, 'lever-yes');
   const figure = await page.locator('.figure').innerText();
   assert.match(figure, /^\d+%$/);
@@ -132,12 +132,26 @@ try {
   await page.waitForSelector('text=Make the wish');
   await shot(page, 'review-choice');
   await page.click('text=Make the wish');
-  await page.waitForSelector('text=Pull the lever', { timeout: 20_000 });
-  await page.click('button:has-text("Pull")');
-  await page.waitForTimeout(2300);
+  await page.waitForSelector('text=Turn the dial', { timeout: 20_000 });
+  // turn the dial with a finger: a circle and a half round the middle
+  const box = await page.locator('.dialbox svg').boundingBox();
+  const cx = box.x + box.width / 2;
+  const cy = box.y + box.height / 2;
+  const R = box.width * 0.33;
+  await page.mouse.move(cx, cy - R);
+  await page.mouse.down();
+  for (let i = 1; i <= 36; i++) {
+    const a = (i / 36) * Math.PI * 1.7;
+    await page.mouse.move(cx + R * Math.sin(a), cy - R * Math.cos(a));
+    if (i === 14) await shot(page, 'dial-turning');
+  }
+  await page.mouse.up();
+  await page.waitForTimeout(1000);
+  await shot(page, 'dial-locking');
+  await page.waitForTimeout(2600);
   await shot(page, 'lever-choice');
   assert.ok((await page.locator('.rank li').count()) >= 3);
-  log('the ring is cut by option and ranked below');
+  log('turned with a finger, the dial locks and the ring is cut by option');
 
   console.log('a number wish, the last one');
   await page.click('button.back');
@@ -146,9 +160,9 @@ try {
   await page.waitForSelector('text=Make the wish');
   await shot(page, 'review-last');
   await page.click('text=Make the wish');
-  await page.waitForSelector('text=Pull the lever', { timeout: 20_000 });
-  await page.click('button:has-text("Pull")');
-  await page.waitForTimeout(2300);
+  await page.waitForSelector('text=Turn the dial', { timeout: 20_000 });
+  await page.click('button:has-text("Reveal")');
+  await page.waitForTimeout(3300);
   await shot(page, 'lever-number');
   assert.match(await page.locator('.reading .sub').innerText(), /80% likely between/);
   await page.click('button.back');
@@ -171,10 +185,10 @@ try {
   const ctx2 = await browser.newContext({ ...device, baseURL: base });
   const p2 = await newPage(ctx2);
   await p2.goto(new URL(shareUrl).pathname);
-  await p2.waitForSelector('text=Pull the lever');
+  await p2.waitForSelector('text=Turn the dial');
   await shot(p2, 'shared-rest');
-  await p2.click('button:has-text("Pull")');
-  await p2.waitForTimeout(2300);
+  await p2.click('button:has-text("Reveal")');
+  await p2.waitForTimeout(3300);
   await shot(p2, 'shared-lever');
   assert.match(await p2.locator('.figure').innerText(), /^\d+%$/);
   const head = await p2.evaluate(() => document.querySelector('meta[property="og:image"]')?.content);

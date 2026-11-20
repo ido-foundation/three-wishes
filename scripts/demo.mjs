@@ -45,6 +45,8 @@ const app = await createApp({
   fakeDelayMs: 4000,
   pollMs: 3000,
   invitesPerUser: 1,
+  // Live mode reads the dashboard from the environment; the dev dashboard and the Foundation org are the defaults here.
+  forecaster: { baseUrl: process.env.FORECASTER_BASE_URL || 'https://dashboard.dev.foundationresearch.ai', org: process.env.FORECASTER_ORG || 'foundation' },
 });
 await app.listen(port);
 const codes = app.deps.auth.createInvites({ count: 3, note: 'demo' });

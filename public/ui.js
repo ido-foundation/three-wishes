@@ -1,4 +1,4 @@
-import { starPath } from './lib/lever.js';
+import { starPath, ringsMarkup, polar, fracToDeg } from './lib/lever.js';
 
 /** Tiny element builder. Children may be nodes or strings (always set as text, never as HTML). */
 export function h(tag, attrs = {}, ...kids) {
@@ -54,7 +54,7 @@ export function backButton(onclick) {
 
 /** A ring of ticks, for waiting. Static markup, no user text. */
 export function tickRing() {
-  const s = svg('svg', { viewBox: '0 0 120 120', class: 'ring', 'aria-hidden': 'true' });
+  const s = svg('svg', { viewBox: '0 0 120 120', class: 'tick-ring', 'aria-hidden': 'true' });
   s.append(svg('circle', { cx: 60, cy: 60, r: 56, fill: 'none', stroke: '#F2E9E4', 'stroke-width': 1.25 }));
   let d = '';
   for (let i = 0; i < 72; i++) {
@@ -68,3 +68,65 @@ export function tickRing() {
 }
 
 export const KIND_LABEL = { binary: 'Yes or no', categorical: 'One of several', numerical: 'A number' };
+
+/** The three wishes as stars on an orbit round the seal. Lit ones are wishes left. */
+export function wishOrbit(left, total = 3) {
+  const s = svg('svg', { viewBox: '0 0 200 200', class: 'orbit', role: 'img', 'aria-label': `${left} of ${total} wishes left` });
+  const at = (r, deg) => [100 + r * Math.sin((deg * Math.PI) / 180), 100 - r * Math.cos((deg * Math.PI) / 180)];
+  let ticks = '';
+  for (let i = 0; i < 72; i++) {
+    const [x0, y0] = at(90, i * 5);
+    const [x1, y1] = at(i % 6 === 0 ? 83 : 86, i * 5);
+    ticks += `M${x0.toFixed(1)} ${y0.toFixed(1)}L${x1.toFixed(1)} ${y1.toFixed(1)}`;
+  }
+  s.innerHTML =
+    `<circle cx="100" cy="100" r="90" fill="none" stroke="#F2E9E4" stroke-width="0.9"/>` +
+    `<circle cx="100" cy="100" r="74" fill="none" stroke="#F2E9E4" stroke-width="0.5" opacity="0.35"/>` +
+    `<path d="${ticks}" stroke="#F2E9E4" stroke-width="0.6" fill="none" opacity="0.7"/>`;
+  const spin = svg('g', { class: 'orbit-spin' });
+  for (let i = 0; i < total; i++) {
+    const [x, y] = at(74, i * (360 / total));
+    spin.append(svg('path', { d: starPath(9, x, y), class: i < left ? 'on' : 'off' }));
+  }
+  s.append(spin);
+  s.append(svg('image', { href: '/brand/seal-chalk.svg', x: 70, y: 70, width: 60, height: 58 }));
+  return s;
+}
+
+/** The instrument turning by itself, for waiting: the same three rings, never locking. */
+export function waitingDial(small = false) {
+  const s = svg('svg', { viewBox: '0 0 400 400', class: `wait-dial${small ? ' small' : ''}`, 'aria-hidden': 'true' });
+  let ticks = '';
+  for (let i = 0; i <= 100; i++) {
+    const deg = fracToDeg(i / 100);
+    const [x0, y0] = polar(160, deg);
+    const [x1, y1] = polar(160 - (i % 10 === 0 ? 16 : i % 5 === 0 ? 11 : 6), deg);
+    ticks += `M${x0} ${y0}L${x1} ${y1}`;
+  }
+  s.innerHTML =
+    `<circle cx="200" cy="200" r="160" fill="none" stroke="#F2E9E4" stroke-width="1.25"/>` +
+    `<path d="${ticks}" stroke="#F2E9E4" stroke-width="0.8" fill="none" opacity="0.85"/>` +
+    `<circle cx="200" cy="200" r="122" fill="none" stroke="#F2E9E4" stroke-width="0.75" opacity="0.5"/>` +
+    ringsMarkup({ B: 0, C: 0, D: 0 }, { id: 'wait' }) +
+    `<circle cx="200" cy="200" r="12" fill="none" stroke="#F2E9E4" stroke-width="1"/><circle cx="200" cy="200" r="4.5" fill="#F2E9E4"/>`;
+  return s;
+}
+
+/** A still, faint field of stars behind everything; a few of them breathe. */
+export function starfield() {
+  const s = svg('svg', { class: 'starfield', viewBox: '0 0 390 844', preserveAspectRatio: 'xMidYMid slice', 'aria-hidden': 'true' });
+  let seed = 11;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 110; i++) {
+    s.append(
+      svg('circle', {
+        cx: (rnd() * 390).toFixed(1), cy: (rnd() * 844).toFixed(1), r: (0.4 + rnd() * 1.0).toFixed(2),
+        fill: '#F2E9E4', opacity: (0.14 + rnd() * 0.5).toFixed(2), class: i % 8 === 0 ? `twinkle t${i % 3}` : '',
+      }),
+    );
+  }
+  for (let i = 0; i < 7; i++) {
+    s.append(svg('path', { d: starPath(3 + rnd() * 2.5, rnd() * 390, rnd() * 844), fill: '#F2E9E4', opacity: 0.7, class: `twinkle t${i % 3}` }));
+  }
+  return s;
+}

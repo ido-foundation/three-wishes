@@ -69,8 +69,8 @@ test('no inline styles or scripts: the page can run under a strict policy', () =
 test('text a person sees is set as text, never as HTML', () => {
   const app = readFileSync('public/app.js', 'utf8') + readFileSync('public/ui.js', 'utf8');
   const uses = [...app.matchAll(/innerHTML\s*=/g)].length;
-  // The back arrow and the install hint: fixed markup, no user text.
-  assert.ok(uses <= 2, `${uses} innerHTML uses`);
+  // The back arrow, the install hint and the orbit and waiting dial: fixed markup, no user text.
+  assert.ok(uses <= 5, `${uses} innerHTML uses`); // fixed drawings: the arrow, the hint, the orbit, the waiting dial
   const view = readFileSync('public/lever-view.js', 'utf8');
   assert.equal([...view.matchAll(/innerHTML\s*=/g)].length, 1, 'only the dial, whose text is escaped');
 });

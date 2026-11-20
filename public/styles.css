@@ -34,6 +34,8 @@ body {
 }
 
 #app {
+  position: relative;
+  z-index: 1;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
@@ -114,7 +116,7 @@ body {
 /* the lever */
 .dialbox { position: relative; width: min(88vw, 44dvh, 400px); aspect-ratio: 1; margin: 0 auto; touch-action: none; user-select: none; -webkit-user-select: none; }
 .dialbox svg { width: 100%; height: 100%; display: block; overflow: visible; }
-.dialbox .handle { cursor: grab; }
+.dialbox svg { cursor: grab; }
 .figure {
   position: absolute; left: 12%; right: 12%; top: 61%; text-align: center; font-weight: 300; line-height: 1;
   font-size: clamp(44px, 14vw, 64px); letter-spacing: -0.01em; transition: opacity 500ms ease; pointer-events: none;
@@ -140,8 +142,29 @@ body {
 @keyframes breathe { 50% { opacity: 0.4; } }
 
 .center-ring { display: flex; justify-content: center; }
+/* backdrop and the instrument's own motion */
+.starfield { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+.twinkle { animation: twinkle 5s ease-in-out infinite; }
+.twinkle.t1 { animation-delay: -1.7s; animation-duration: 6.5s; }
+.twinkle.t2 { animation-delay: -3.4s; animation-duration: 4.2s; }
+@keyframes twinkle { 50% { opacity: 0.12; } }
+.orbit { width: min(46vw, 190px); height: auto; display: block; margin: 4px auto 0; }
+.orbit-spin { transform-origin: 100px 100px; animation: turn 140s linear infinite; }
+.orbit-spin .on { fill: var(--chalk); stroke: var(--chalk); stroke-width: 1; }
+.orbit-spin .off { fill: none; stroke: var(--faint); stroke-width: 1; }
+.wait-dial { width: min(66vw, 270px); height: auto; display: block; margin: 0 auto; }
+.wait-dial.small { width: min(46vw, 190px); }
+.wait-dial .ringB { transform-origin: 200px 200px; animation: turn 70s linear infinite; }
+.wait-dial .ringC { transform-origin: 200px 200px; animation: turn 46s linear infinite reverse; }
+.wait-dial .ringD { transform-origin: 200px 200px; animation: turn 28s linear infinite; }
+.ripple { fill: none; stroke: var(--chalk); stroke-width: 1.2; transform-origin: 200px 200px; animation: ripple 850ms ease-out forwards; }
+@keyframes ripple { from { transform: scale(0.96); opacity: 0.9; } to { transform: scale(1.14); opacity: 0; } }
+.dialbox.thunk { animation: thunk 220ms ease-out; }
+@keyframes thunk { 30% { transform: translateY(3px) scale(0.992); } }
+.label.demo { text-align: center; opacity: 0.8; }
+
 /* checking: a ring of ticks, turning slowly */
-.ring { width: 120px; height: 120px; animation: turn 9s linear infinite; }
+.tick-ring { width: 120px; height: 120px; animation: turn 9s linear infinite; }
 @keyframes turn { to { transform: rotate(360deg); } }
 
 .install { display: flex; align-items: center; gap: 12px; color: var(--muted); justify-content: center; }
@@ -151,7 +174,7 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .view { animation: none; }
-  .ring, .pulse, .star.spending { animation: none; }
+  .tick-ring, .pulse, .star.spending, .twinkle, .orbit-spin, .wait-dial .ring, .ripple, .dialbox.thunk { animation: none; }
   .star, .figure, .reading, .rank { transition: none; }
 }
 @media (max-height: 640px) { .center { gap: 18px; } .lockup { width: min(52vw, 220px); } }

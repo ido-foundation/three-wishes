@@ -1,5 +1,5 @@
 import { api, ApiError } from './api.js';
-import { h, starsRow, lockup, seal, wordmark, backButton, tickRing, KIND_LABEL } from './ui.js';
+import { h, starsRow, lockup, seal, wordmark, backButton, wishOrbit, waitingDial, starfield, KIND_LABEL } from './ui.js';
 import { mountLever } from './lever-view.js';
 import { leverModel, fmtDate, percent } from './lib/lever.js';
 
@@ -84,8 +84,7 @@ function installHint() {
 function homeView({ text = state.draft, error = '' } = {}) {
   const me = state.me;
   const kids = [
-    seal(),
-    starsRow(me.left, me.total),
+    wishOrbit(me.left, me.total),
     h('p', { class: 'label centered' }, me.left > 0 ? `${me.left} ${me.left === 1 ? 'wish' : 'wishes'} left` : ''),
   ];
 
@@ -135,7 +134,7 @@ function wishRow(w) {
     w.status === 'ready'
       ? w.revealed
         ? h('span', { class: 'fig' }, (({ figure, unit }) => (unit ? `${figure} ${unit}` : figure))(leverModel(w.question, w.answer)))
-        : h('span', { class: 'fig state' }, 'Pull')
+        : h('span', { class: 'fig state' }, 'Reveal')
       : w.status === 'failed'
         ? h('span', { class: 'fig state' }, 'Returned')
         : h('span', { class: 'fig state pulse' }, 'Waiting');
@@ -153,7 +152,7 @@ function openWish(w) {
 async function checkFlow(text) {
   state.draft = text;
   mount(
-    view('center', tickRing(), h('p', { class: 'label', role: 'status' }, 'One moment')),
+    view('center', waitingDial(true), h('p', { class: 'label', role: 'status' }, 'One moment')),
   );
   let r;
   try {
@@ -233,7 +232,7 @@ function waitingView(wish, { justSealed = false } = {}) {
     backButton(() => homeView()),
     starsRow(me.left, me.total),
     h('div', { class: 'grow' }),
-    h('div', { class: 'center-ring' }, tickRing()),
+    h('div', { class: 'center-ring' }, waitingDial()),
     h('p', { class: 'label pulse', role: 'status' }, 'Your wish is being made'),
     h('p', { class: 'title small' }, wish.question.title),
     h('p', { class: 'body' }, 'This can take a while. You can close the app.'),
@@ -303,7 +302,7 @@ function b64ToBytes(s) {
 /* ───────── the lever ───────── */
 
 function leverView(wish, { shared = false, token = null, back = () => homeView() } = {}) {
-  const pullBtn = h('button', { class: 'btn', type: 'button' }, 'Pull');
+  const pullBtn = h('button', { class: 'btn', type: 'button' }, 'Reveal');
   const actions = h('div', { class: 'actions' });
 
   const lever = mountLever({
@@ -328,6 +327,7 @@ function leverView(wish, { shared = false, token = null, back = () => homeView()
     view('stack',
       shared ? seal() : backButton(back),
       h('p', { class: 'title small clamp' }, wish.question.title),
+      (wish.demo ?? state.me?.demo) ? h('p', { class: 'label demo' }, 'Demo answer · not a real forecast') : null,
       h('div', { class: 'grow' }),
       lever.box,
       lever.slot,
@@ -372,7 +372,7 @@ async function share(button, wish, token) {
 async function shareView(token) {
   try {
     const w = await api.publicWish(token);
-    leverView({ question: w.question, answer: w.answer, revealed: false, share_url: `${location.origin}/w/${token}` }, { shared: true, token });
+    leverView({ question: w.question, answer: w.answer, demo: w.demo, revealed: false, share_url: `${location.origin}/w/${token}` }, { shared: true, token });
   } catch {
     mount(view('center', lockup()));
   }
@@ -381,6 +381,7 @@ async function shareView(token) {
 /* ───────── start ───────── */
 
 async function boot() {
+  document.body.prepend(starfield());
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
 
   const path = location.pathname;

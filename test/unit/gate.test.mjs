@@ -4,7 +4,7 @@ import { rulesPrecheck, readJev, buildJevRequest, validateDraft, normalizeText, 
 import { makeCode, normalizeCode, daysBetween, isoDay, DAY } from '../../server/util.mjs';
 
 const NOW = Date.parse('2026-11-20T12:00:00Z');
-const opts = { now: NOW, minDays: 7, maxDays: 1095 };
+const opts = { now: NOW, minDays: 1, maxDays: 1095 };
 const good = () => ({
   title: 'Will the Federal Reserve cut rates before 31 December 2027?',
   description: 'Background.',
@@ -73,11 +73,12 @@ test('kinds we do not offer, and conditions, are turned back', () => {
   assert.equal(validateDraft({ ...good(), kind: 'poem' }, opts).ok, false);
 });
 
-test('the date window: not too soon, not past, not too far', () => {
+test('the date window: tomorrow to three years; not today, not past', () => {
   const day = (n) => isoDay(NOW + n * DAY);
-  assert.equal(validateDraft({ ...good(), close_date: day(3) }, opts).reason, 'soon');
-  assert.equal(validateDraft({ ...good(), close_date: day(-30) }, opts).reason, 'soon');
-  assert.ok(validateDraft({ ...good(), close_date: day(7) }, opts).ok);
+  assert.equal(validateDraft({ ...good(), close_date: day(0) }, opts).reason, 'soon', 'settles today');
+  assert.equal(validateDraft({ ...good(), close_date: day(-30) }, opts).reason, 'soon', 'already settled');
+  assert.ok(validateDraft({ ...good(), close_date: day(1) }, opts).ok, 'tomorrow is fine');
+  assert.ok(validateDraft({ ...good(), close_date: day(3) }, opts).ok, 'and so is this week');
   assert.ok(validateDraft({ ...good(), close_date: day(1095) }, opts).ok);
   assert.equal(validateDraft({ ...good(), close_date: day(1096) }, opts).reason, 'far');
 });

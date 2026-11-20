@@ -152,6 +152,7 @@ export async function createApp(overrides = {}, { now = Date.now, log = console,
       wishes: wishes.forUser(u.id),
       invites: auth.givenInvites(u.id),
       push: { enabled: push.enabled, key: push.publicKey },
+      demo: config.mode === 'fake',
     };
   }
 
@@ -214,7 +215,7 @@ export async function createApp(overrides = {}, { now = Date.now, log = console,
     if (method === 'GET' && m) {
       const w = wishes.byShareToken(m[1]);
       if (!w) throw new HttpError(404, 'not_found', 'Not found.');
-      return send(res, 200, w, { 'Cache-Control': 'public, max-age=300' });
+      return send(res, 200, { ...w, demo: config.mode === 'fake' }, { 'Cache-Control': 'public, max-age=300' });
     }
 
     if (method === 'GET' && pathname === '/admin/stats') {
@@ -289,7 +290,8 @@ export async function createApp(overrides = {}, { now = Date.now, log = console,
       if (m) {
         const w = wishes.byShareToken(m[1]);
         if (!w) throw new HttpError(404, 'not_found', 'Not found.');
-        const png = await cards.png(`${m[1]}:${w.done_at}`, w.question, w.answer);
+        const demo = config.mode === 'fake';
+        const png = await cards.png(`${m[1]}:${w.done_at}:${demo}`, w.question, w.answer, { demo });
         res.writeHead(200, headers({ 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=3600' }));
         return res.end(png);
       }

@@ -107,7 +107,8 @@ test('a vague question gets hints; a conditional and a "when" question are turne
   assert.match(guessed.notes[0], /please check/);
   assert.equal((await c.post('/api/check', { text: 'If rates fall then will housing recover by 2027?' })).data.reason, 'conditional');
   assert.equal((await c.post('/api/check', { text: 'When will the Fed cut rates next?' })).data.reason, 'date');
-  assert.equal((await c.post('/api/check', { text: 'Will the Fed cut rates tomorrow?' })).data.reason, 'soon');
+  assert.equal((await c.post('/api/check', { text: 'Will the Fed cut rates today?' })).data.reason, 'soon', 'settles today');
+  assert.equal((await c.post('/api/check', { text: 'Will the Fed cut rates tomorrow?' })).data.verdict, 'ok', 'a question can settle tomorrow');
   assert.equal((await c.get('/api/me')).data.left, 3);
 });
 
@@ -186,7 +187,8 @@ test('the answer arrives, is the same however it is read, and a share link shows
   const anon = s.client();
   const pub = await anon.get(`/api/public/${token}`);
   assert.equal(pub.status, 200);
-  assert.deepEqual(Object.keys(pub.data).sort(), ['answer', 'done_at', 'question']);
+  assert.deepEqual(Object.keys(pub.data).sort(), ['answer', 'demo', 'done_at', 'question']);
+  assert.equal(pub.data.demo, true, 'a fake answer says so');
   assert.equal((await anon.get('/api/public/not-a-real-token-xxxx')).status, 404);
 
   const page = await anon.get(`/w/${token}`);
@@ -353,7 +355,7 @@ test('the form check (Jev) turns questions away by reason, and failing open fall
   assert.deepEqual([r.verdict, r.reason], ['no', 'past']);
   respond = answer({ fine: 0.1, vague: 0.8, other: 0.1 });
   r = (await c.post('/api/check', { text: Q_YES })).data;
-  assert.deepEqual([r.verdict, r.reason], ['fix', 'vague']);
+  assert.equal(r.verdict, 'ok', '"vague" from the decision model is not final: the sharpening step decides');
   respond = answer({ fine: 0.97, other: 0.03 });
   assert.equal((await c.post('/api/check', { text: Q_YES })).data.verdict, 'ok');
   respond = () => { throw new Error('timeout'); };

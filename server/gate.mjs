@@ -114,7 +114,7 @@ export function validateDraft(draft, { now, minDays, maxDays }) {
 
   const days = daysBetween(now, draft.close_date);
   if (Number.isNaN(days)) return fail('vague', REASONS.vague);
-  if (days < minDays) return fail('soon', 'That settles too soon. Ask about something at least a week away.');
+  if (days < minDays) return fail('soon', 'That has already settled, or settles today. Ask about tomorrow or later.');
   if (days > maxDays) return fail('far', "That's too far out. Ask about the next three years.");
 
   const q = {
@@ -178,13 +178,9 @@ export function makeGate({ db, config, jev, forecaster, now = Date.now, log = co
     if (jev) {
       try {
         const read = readJev(await jev.decide(buildJevRequest(text, config.jev.model)));
-        if (read.fine < config.jev.minProb) {
-          if (read.reason === 'vague') {
-            record('fix');
-            return { verdict: 'fix', reason: 'vague', message: REASONS.vague, hints: [] };
-          }
-          return no(read.reason);
-        }
+        // "Vague" is not final: the sharpening step may still settle on a date and an event, and
+        // says what it assumed. Every other reason (past, opinion, private, harmful) is.
+        if (read.fine < config.jev.minProb && read.reason !== 'vague') return no(read.reason);
       } catch (err) {
         log.warn?.(`form check unavailable: ${err.code ?? err.name}`);
         // fall through: the sharpening step and the rules below still apply

@@ -13,7 +13,7 @@ The product and technical spec is in [SPEC.md](SPEC.md). This file is how to run
    address (Cloudflare quick tunnel; it exists only while the command runs). Open a link in Safari,
    **Share → Add to Home Screen**, open the new icon, type the code it showed. Try the lever, share
    a result to Messages (the link shows a preview picture), and ask a question it should refuse.
-3. **Real forecasts:** `MODE=live npm run demo:tunnel`. Each wish now costs real money (up to
+3. **Real forecasts:** `MODE=live npm run demo:tunnel` (uses the dev dashboard and your token file; set `DAILY_WISH_LIMIT` to cap the day). Each wish now costs real money (up to
    `WISH_MAX_USD`, twice if a run has to be retried) and takes about 9 minutes at `light` depth.
 4. **See the pieces work:** `npm test` (72 tests), `npm run test:e2e` (the whole flow in a browser, with
    screenshots), `npm run decider-check` (sixteen labelled questions through the real form check),

@@ -1,22 +1,38 @@
-// The lever on screen: the dial, the pull (drag the star, tap the dial, or press the button),
-// the spring, and the reading that appears as the arm settles.
-import { START, END, CX, CY, dialSvg, leverModel, percent, spring } from './lib/lever.js';
+// The lever on screen. The dial starts scrambled; the person turns it (drag a finger round it, tap
+// it, or press Reveal). Three rings spin and lock one after another, each ring's mark lining up
+// with the arm; the gold star swings in and settles on the answer; the figure is written.
+import { START, CX, CY, arcPath, dialSvg, leverModel, lockedRings, percent, restRings, spring } from './lib/lever.js';
 import { h } from './ui.js';
 
 const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
-const REST = 'A lever at rest. Pull it to see your answer.';
+const NS = 'http://www.w3.org/2000/svg';
+const REST = 'A dial, scrambled. Turn it, or press Reveal, to see your answer.';
+
+const CHARGE = 300; // degrees of finger travel round the dial that make it let go
+const RING_DIR = { B: 1, C: -1, D: 1 }; // the rings turn against each other
+const RING_TURNS = { B: 2, C: 2, D: 3 }; // whole extra turns in the finale
+const RING_SECS = { B: 1.5, C: 2.0, D: 2.5 }; // when each one locks
+const ARM_DELAY = 0.45;
+const END_SECS = 2.7;
+
+const easeOut = (x) => 1 - (1 - clamp(x, 0, 1)) ** 3;
+const wrap360 = (d) => ((d % 360) + 360) % 360;
+const wrap180 = (d) => ((d + 540) % 360) - 180;
 
 export function mountLever({ question, answer, revealed = false, onReveal = () => {} }) {
   const model = leverModel(question, answer);
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const locked = lockedRings(model);
+  const rest = restRings(model);
   let done = revealed;
   let busy = false;
-  let moved = false;
 
   const box = h('div', { class: `dialbox${revealed ? '' : ' waiting'}` });
-  box.innerHTML = dialSvg(model, { angle: revealed ? model.angle : START });
+  box.innerHTML = dialSvg(model, { angle: revealed ? model.angle : START, rings: revealed ? locked : rest });
   const svg = box.querySelector('svg');
   const arm = svg.querySelector('#arm');
+  const ringEl = { B: svg.querySelector('#dial-B'), C: svg.querySelector('#dial-C'), D: svg.querySelector('#dial-D') };
+  const chargeEl = svg.querySelector('#dial-charge');
   svg.setAttribute('aria-label', revealed ? model.aria : REST);
 
   const figure = h('div', { class: `figure${revealed ? '' : ' hidden'}` });
@@ -33,7 +49,7 @@ export function mountLever({ question, answer, revealed = false, onReveal = () =
     h('p', { class: 'sub' }, model.sub),
     h('p', { class: 'label' }, model.caption),
   );
-  const hint = h('p', { class: `label pulse hint${revealed ? ' hidden' : ''}` }, 'Pull the lever');
+  const hint = h('p', { class: `label pulse hint${revealed ? ' hidden' : ''}` }, 'Turn the dial');
   // One slot holds both, one over the other, so nothing jumps when the answer appears.
   const slot = h('div', { class: 'slot' }, hint, reading);
 
@@ -55,12 +71,32 @@ export function mountLever({ question, answer, revealed = false, onReveal = () =
     );
   }
 
-  const setAngle = (a) => arm.setAttribute('transform', `rotate(${a.toFixed(2)} ${CX} ${CY})`);
+  // Current state of the moving parts.
+  const rings = revealed ? { ...locked } : { ...rest };
+  let armAngle = revealed ? model.angle : START;
+  const paint = () => {
+    for (const k of ['B', 'C', 'D']) ringEl[k].setAttribute('transform', `rotate(${rings[k].toFixed(2)} ${CX} ${CY})`);
+    arm.setAttribute('transform', `rotate(${armAngle.toFixed(2)} ${CX} ${CY})`);
+  };
+  const setCharge = (c) => chargeEl.setAttribute('d', c > 0.004 ? arcPath(167, START, START + clamp(c, 0, 1) * 270) : '');
+
+  function ripple(r) {
+    const c = document.createElementNS(NS, 'circle');
+    c.setAttribute('cx', CX);
+    c.setAttribute('cy', CY);
+    c.setAttribute('r', r);
+    c.setAttribute('class', 'ripple');
+    svg.append(c);
+    setTimeout(() => c.remove(), 900);
+  }
 
   function finish() {
     done = true;
     busy = false;
-    setAngle(model.angle);
+    Object.assign(rings, locked);
+    armAngle = model.angle;
+    paint();
+    setCharge(0);
     setFigure(model.figure);
     figure.classList.remove('hidden');
     reading.classList.remove('hidden');
@@ -71,71 +107,100 @@ export function mountLever({ question, answer, revealed = false, onReveal = () =
     onReveal();
   }
 
-  function swing(from) {
+  /** From wherever the rings and the arm are now: spin, lock one by one, swing the star in. */
+  function finale() {
     if (done || busy) return;
     busy = true;
     if (reduce) return finish();
-    figure.classList.remove('hidden');
-    const to = model.angle;
+    setCharge(0);
+    const from = { ...rings };
+    const armFrom = armAngle;
+    const travel = {};
+    for (const k of ['B', 'C', 'D']) {
+      const need = wrap360((locked[k] - from[k]) * RING_DIR[k]); // forward to the lock, in its direction
+      travel[k] = RING_TURNS[k] * 360 + need;
+    }
+    const lockedAt = { B: false, C: false, D: false };
     const t0 = performance.now();
+    let figureShown = false;
     const step = (now) => {
       const t = (now - t0) / 1000;
-      const s = spring(t);
-      setAngle(from + (to - from) * s);
-      if (model.kind === 'binary') {
-        setFigure(percent(model.f * clamp(s, 0, 1)));
+      for (const k of ['B', 'C', 'D']) {
+        rings[k] = from[k] + RING_DIR[k] * travel[k] * easeOut(t / RING_SECS[k]);
+        if (!lockedAt[k] && t >= RING_SECS[k]) {
+          lockedAt[k] = true;
+          ripple({ B: 112, C: 88, D: 66 }[k]);
+          if (k === 'D') {
+            box.classList.add('thunk');
+            setTimeout(() => box.classList.remove('thunk'), 220);
+          }
+        }
       }
-      if (t < 1.9) requestAnimationFrame(step);
+      const s = spring(Math.max(0, t - ARM_DELAY));
+      armAngle = armFrom + (model.angle - armFrom) * s;
+      if (t >= ARM_DELAY && !figureShown) {
+        figureShown = true;
+        figure.classList.remove('hidden');
+      }
+      if (figureShown && model.kind === 'binary') setFigure(percent(model.f * clamp(s, 0, 1)));
+      paint();
+      if (t < END_SECS) requestAnimationFrame(step);
       else finish();
     };
     requestAnimationFrame(step);
   }
 
-  function pull() {
-    swing(START);
-  }
-
-  // Dragging the star: the arm follows the finger; past a quarter of the sweep it takes over.
-  let dragging = false;
+  // Turning the dial: a finger going round it turns the rings (against each other) and charges the
+  // outer scale; a full charge lets go. A tap lets go at once. Let go early and it falls back.
+  let drag = null;
   const angleAt = (e) => {
     const r = svg.getBoundingClientRect();
-    const dx = e.clientX - (r.left + r.width / 2);
-    const dy = e.clientY - (r.top + r.height / 2);
-    const deg = (Math.atan2(dx, -dy) * 180) / Math.PI;
-    return clamp(deg, START, END);
+    return (Math.atan2(e.clientX - (r.left + r.width / 2), -(e.clientY - (r.top + r.height / 2))) * 180) / Math.PI;
   };
   svg.addEventListener('pointerdown', (e) => {
-    if (done || busy || !e.target.closest('.handle')) return;
-    dragging = true;
-    moved = false;
+    if (done || busy) return;
+    drag = { last: angleAt(e), total: 0, at: performance.now(), base: { ...rings } };
     svg.setPointerCapture(e.pointerId);
   });
   svg.addEventListener('pointermove', (e) => {
-    if (!dragging) return;
-    moved = true;
+    if (!drag) return;
     const a = angleAt(e);
-    setAngle(a);
-    if (a - START > SWEEP_TRIGGER) {
-      dragging = false;
-      swing(a);
+    const d = wrap180(a - drag.last);
+    drag.last = a;
+    drag.total += Math.abs(d);
+    rings.B += d * 1;
+    rings.C -= d * 0.7;
+    rings.D += d * 1.4;
+    const c = clamp(drag.total / CHARGE, 0, 1);
+    armAngle = START + c * 30; // the arm leans as it charges
+    setCharge(c);
+    paint();
+    if (c >= 1) {
+      drag = null;
+      finale();
     }
   });
   const release = () => {
-    if (!dragging) return;
-    dragging = false;
-    if (!busy) setAngle(START); // let go early: it falls back to rest
+    if (!drag) return;
+    const { total, at, base } = drag;
+    drag = null;
+    if (busy || done) return;
+    if (total < 14 && performance.now() - at < 400) return finale(); // a tap
+    // let go early: everything eases back to where it was
+    const from = { ...rings, arm: armAngle };
+    const t0 = performance.now();
+    const back = (now) => {
+      const x = easeOut((now - t0) / 450);
+      for (const k of ['B', 'C', 'D']) rings[k] = from[k] + (base[k] - from[k]) * x;
+      armAngle = from.arm + (START - from.arm) * x;
+      setCharge((1 - x) * clamp(total / CHARGE, 0, 1));
+      paint();
+      if (x < 1 && !busy && !done) requestAnimationFrame(back);
+    };
+    requestAnimationFrame(back);
   };
   svg.addEventListener('pointerup', release);
   svg.addEventListener('pointercancel', release);
-  box.addEventListener('click', () => {
-    if (moved) {
-      moved = false;
-      return;
-    }
-    pull();
-  });
 
-  return { box, slot, rank, pull, get revealed() { return done; }, model };
+  return { box, slot, rank, pull: finale, get revealed() { return done; }, model };
 }
-
-const SWEEP_TRIGGER = 62;

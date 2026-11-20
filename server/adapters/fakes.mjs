@@ -79,7 +79,8 @@ export function makeFakeForecaster({ delayMs = 3000, now = Date.now } = {}) {
         // filled the date with a guess and flagged it for the person to check
         draft.unresolved = [{ field: 'close_date', reason: `No date was given; I used ${draft.close_date}, so please check it.` }];
       }
-      if (/\btomorrow|today|tonight\b/.test(lower)) draft.close_date = isoDay(today + DAY);
+      if (/\btomorrow\b/.test(lower)) draft.close_date = isoDay(today + DAY);
+      if (/\btoday|tonight\b/.test(lower)) draft.close_date = isoDay(today);
       if (/\bif\b.+\bthen\b/.test(lower)) draft.condition = 'a condition';
       if (/\bwhen will\b/.test(lower)) draft.kind = 'date';
       if (/\bwhich\b/.test(lower)) {

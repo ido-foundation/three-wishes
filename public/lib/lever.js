@@ -175,10 +175,10 @@ export function starPath(R, cx = 0, cy = 0) {
 }
 
 const ARM_TIP = 86; // y of the star's centre when the arm points up
-const STAR_R = 13;
+const STAR_R = 15;
 
 /** The fixed face of the dial: rings, ticks, scale labels, arcs, hub. Returns SVG markup. */
-export function dialFace(model) {
+export function dialFace(model, { rings = lockedRings(model), id = "dial" } = {}) {
   const parts = [];
   parts.push(`<circle cx="${CX}" cy="${CY}" r="160" fill="none" stroke="${CHALK}" stroke-width="1.25"/>`);
   parts.push(`<circle cx="${CX}" cy="${CY}" r="122" fill="none" stroke="${CHALK}" stroke-width="0.75" opacity="0.5"/>`);
@@ -214,9 +214,55 @@ export function dialFace(model) {
     }
   }
 
+  parts.push(ringsMarkup(rings, { id }));
+  parts.push(`<path id="${id}-charge" d="" fill="none" stroke="${CHALK}" stroke-width="2" stroke-linecap="round"/>`);
   parts.push(`<circle cx="${CX}" cy="${CY}" r="12" fill="none" stroke="${CHALK}" stroke-width="1"/>`);
   parts.push(`<circle cx="${CX}" cy="${CY}" r="4.5" fill="${CHALK}"/>`);
   return parts.join('');
+}
+
+const ROMAN12 = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+
+/** Where the three rings sit when the dial has locked on the answer: each one's mark on the arm. */
+export const lockedRings = (model) => ({ B: model.angle, C: model.angle, D: model.angle });
+/** Where they sit before: scrambled, so that turning the dial has something to resolve. */
+export const restRings = (model) => ({ B: model.angle + 57, C: model.angle - 101, D: model.angle + 163 });
+
+/**
+ * Three rings inside the scale, in the style of the kit's dial studies: numerals, graduations, an
+ * orbit with satellites. Each carries one index mark at its top; when the rings lock, the three
+ * marks line up with the arm. The bottom sector (124 degrees) is left clear, where the figure is written.
+ */
+export function ringsMarkup(rot, { id = 'dial' } = {}) {
+  const line = (r, w, o) => `<circle cx="${CX}" cy="${CY}" r="${r}" fill="none" stroke="${CHALK}" stroke-width="${w}" opacity="${o}"/>`;
+
+  let numerals = '';
+  for (let i = 0; i < 12; i++) {
+    const a = i * 30;
+    numerals += `<text transform="rotate(${a} ${CX} ${CY})" x="${CX}" y="${CY - 104 + 3}" text-anchor="middle" font-family="Hanken Grotesk, sans-serif" font-weight="500" font-size="8" letter-spacing="0.5" fill="${CHALK}" opacity="0.8">${ROMAN12[i]}</text>`;
+  }
+  const B = `${line(112, 0.6, 0.5)}${line(96, 0.6, 0.5)}${numerals}<path d="M${CX} ${CY - 92}l-4 -7h8z" fill="${CHALK}"/>`;
+
+  let grad = '';
+  for (let i = 0; i < 60; i++) {
+    const [x0, y0] = polar(88, i * 6);
+    const [x1, y1] = polar(88 - (i % 5 === 0 ? 12 : 6), i * 6);
+    grad += `M${x0} ${y0}L${x1} ${y1}`;
+  }
+  const C = `${line(88, 0.6, 0.5)}${line(76, 0.6, 0.35)}<path d="${grad}" stroke="${CHALK}" stroke-width="0.7" fill="none" opacity="0.8"/><path d="M${CX} ${CY - 88}V${CY - 68}" stroke="${CHALK}" stroke-width="1.8"/>`;
+
+  let sats = '';
+  for (const a of [120, 240]) {
+    const [x, y] = polar(66, a);
+    sats += `<circle cx="${x}" cy="${y}" r="3" fill="${CHALK}"/><circle cx="${x}" cy="${y}" r="7" fill="none" stroke="${CHALK}" stroke-width="0.6" opacity="0.6"/>`;
+  }
+  const D = `${line(66, 0.7, 0.55)}${line(50, 0.5, 0.3)}${sats}<path d="${starPath(6.5, CX, CY - 66)}" fill="${CHALK}"/>`;
+
+  const g = (k, body) => `<g id="${id}-${k}" class="ring ring${k}" transform="rotate(${r1(rot[k])} ${CX} ${CY})">${body}</g>`;
+  return (
+    `<clipPath id="${id}-clip"><path d="M0 0H400V306L${CX} ${CY}L0 306Z"/></clipPath>` +
+    `<g clip-path="url(#${id}-clip)">${g('B', B)}${g('C', C)}${g('D', D)}</g>`
+  );
 }
 
 const label = (x, y, text) =>
@@ -235,14 +281,14 @@ export function arm(angle, { id = 'arm' } = {}) {
 }
 
 /** A complete dial as an <svg> string. `angle` defaults to the answer's; pass START for the resting lever. */
-export function dialSvg(model, { angle = model.angle, size = null, id = 'arm', title = '' } = {}) {
+export function dialSvg(model, { angle = model.angle, rings = lockedRings(model), size = null, id = 'dial', armId = 'arm', title = '' } = {}) {
   const dim = size ? ` width="${size}" height="${size}"` : '';
   const t = title ? `<title>${esc(title)}</title>` : '';
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"${dim} role="img" aria-label="${esc(model.aria)}">${t}${dialFace(model)}${arm(angle, { id })}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"${dim} role="img" aria-label="${esc(model.aria)}">${t}${dialFace(model, { rings, id })}${arm(angle, { id: armId })}</svg>`;
 }
 
-/** The dial's parts without the outer <svg>, to place inside a larger drawing. */
-export const dialInner = (model, angle = model.angle) => dialFace(model) + arm(angle);
+/** The dial's parts without the outer <svg>, to place inside a larger drawing (locked on the answer). */
+export const dialInner = (model, angle = model.angle) => dialFace(model, { rings: lockedRings(model), id: 'card' }) + arm(angle);
 
 export function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);

@@ -39,7 +39,7 @@ export function makeCards({ publicDir = resolve('public') } = {}) {
   }
   const cache = new Map();
 
-  function svg(question, answer) {
+  function svg(question, answer, { demo = false } = {}) {
     const model = leverModel(question, answer);
     const lines = wrap(question.title, 34, 4);
     const q = lines
@@ -57,16 +57,17 @@ ${q}
 ${model.unit ? `<text x="540" y="1012" text-anchor="middle" font-size="24" font-weight="500" letter-spacing="3.6" fill="${CHALK}" opacity="0.8">${esc(model.unit.toUpperCase())}</text>` : ''}
 <text x="540" y="1090" text-anchor="middle" font-size="30" font-weight="400" fill="${CHALK}" opacity="0.88">${esc(sub)}</text>
 <text x="540" y="1138" text-anchor="middle" font-size="22" font-weight="500" letter-spacing="3.2" fill="${CHALK}" opacity="0.8">${esc(model.caption.toUpperCase())}</text>
+${demo ? `<text x="540" y="1190" text-anchor="middle" font-size="20" font-weight="500" letter-spacing="3" fill="${CHALK}" opacity="0.6">DEMO ANSWER · NOT A REAL FORECAST</text>` : ''}
 <image href="${wordmark}" x="410" y="1240" width="260" height="32"/>
 </svg>`;
   }
 
   return {
     svg,
-    async png(key, question, answer) {
+    async png(key, question, answer, opts = {}) {
       if (cache.has(key)) return cache.get(key);
       const sharp = await loadSharp(join(brand, 'fonts'));
-      const buf = await sharp(Buffer.from(svg(question, answer)), { density: 72 }).png({ compressionLevel: 9 }).toBuffer();
+      const buf = await sharp(Buffer.from(svg(question, answer, opts)), { density: 72 }).png({ compressionLevel: 9 }).toBuffer();
       cache.set(key, buf);
       if (cache.size > 200) cache.delete(cache.keys().next().value);
       return buf;
