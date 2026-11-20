@@ -1,4 +1,4 @@
-/* Foundation kit v8, with one change by request: night is much darker than the kit's #06082F.
+/* Foundation kit v8 on a near-black ground.
    Night, chalk, and one small gold star (the lever's). Flat: no gradients, glows or shadows.
    Hanken Grotesk stands in for Univers Next (kit: "Google templates use Hanken Grotesk"). */
 @font-face { font-family: "Hanken Grotesk"; font-weight: 300; src: url(/brand/fonts/HankenGrotesk-Light.ttf) format("truetype"); font-display: swap; }
@@ -7,7 +7,7 @@
 @font-face { font-family: "Hanken Grotesk"; font-weight: 600; src: url(/brand/fonts/HankenGrotesk-SemiBold.ttf) format("truetype"); font-display: swap; }
 
 :root {
-  --night: #02031A;
+  --night: #040405;
   --chalk: #F2E9E4;
   --gold: #C9A865;
   --muted: rgba(242, 233, 228, 0.68);
@@ -45,8 +45,8 @@ body {
   margin: 0 auto;
 }
 
-.view { flex: 1; display: flex; flex-direction: column; animation: enter 320ms ease-out both; }
-@keyframes enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.view { flex: 1; display: flex; flex-direction: column; animation: enter 440ms ease-out both; }
+@keyframes enter { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 
 .code-show { letter-spacing: 0.28em; padding-left: 0.28em; }
 .center { justify-content: center; align-items: center; text-align: center; gap: 28px; }
@@ -76,8 +76,8 @@ body {
 .dot .ring { fill: none; stroke: var(--chalk); stroke-width: 0.9; }
 .dot.spent .core { fill: none; }
 .dot.spent .ring { stroke: var(--faint); }
-.dot.spending { animation: spend 1.4s ease-in-out infinite; }
-@keyframes spend { 50% { opacity: 0.25; } }
+.dot.spending { animation: spend 2.2s ease-in-out infinite; }
+@keyframes spend { 50% { opacity: 0.48; } }
 
 /* fields and buttons */
 .field {
@@ -122,12 +122,12 @@ body {
 .dialbox svg { cursor: grab; }
 .figure {
   position: absolute; left: 12%; right: 12%; top: 61%; text-align: center; font-weight: 300; line-height: 1;
-  font-size: clamp(44px, 14vw, 64px); letter-spacing: -0.01em; transition: opacity 500ms ease; pointer-events: none;
+  font-size: clamp(44px, 14vw, 64px); letter-spacing: -0.01em; transition: opacity 650ms ease, transform 650ms ease; pointer-events: none;
 }
 .figure[data-size="s"] { font-size: clamp(36px, 11vw, 50px); }
 .figure[data-size="xs"] { font-size: clamp(28px, 8.5vw, 38px); }
 .figure .unit { display: block; margin-top: 6px; font-size: 0.3em; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
-.figure.hidden { opacity: 0; }
+.figure.hidden { opacity: 0; transform: translateY(4px); }
 .slot { display: grid; justify-items: center; align-items: start; min-height: 64px; margin-top: 4px; }
 .slot > * { grid-area: 1 / 1; }
 .reading { text-align: center; transition: opacity 500ms ease; }
@@ -141,42 +141,44 @@ body {
 .rank .n { font-size: 12px; font-weight: 500; letter-spacing: 0.1em; color: var(--muted); }
 .rank .p { font-weight: 300; font-size: 20px; }
 .rank li.lead .name { font-weight: 500; }
-.pulse { animation: breathe 2.6s ease-in-out infinite; }
-@keyframes breathe { 50% { opacity: 0.4; } }
+.pulse { animation: breathe 4.4s ease-in-out infinite; }
+@keyframes breathe { 50% { opacity: 0.72; } }
 
 .center-ring { display: flex; justify-content: center; }
 /* backdrop: a vast, faint instrument behind the page, and the instrument's own motion */
-.watermark { position: fixed; width: 170vw; max-width: 1100px; left: calc(50% - min(85vw, 550px)); top: calc(56% - min(85vw, 550px)); z-index: 0; pointer-events: none; opacity: 0.085; transition: opacity 900ms ease; animation: wmin 3s ease-out both, turn 700s linear infinite; }
+.watermark { position: fixed; width: 170vw; max-width: 1100px; left: calc(50% - min(85vw, 550px)); top: calc(56% - min(85vw, 550px)); z-index: 0; pointer-events: none; opacity: 0.06; transition: opacity 900ms ease; animation: turn 760s linear infinite; }
 .watermark * { vector-effect: non-scaling-stroke; }
 body[data-wm="0"] .watermark { opacity: 0; }
-@keyframes wmin { from { opacity: 0; } }
 .rise { animation: rise 1800ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
 @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
 .orbit { width: min(46vw, 190px); height: auto; display: block; margin: 4px auto 0; }
-.orbit-spin { transform-origin: 100px 100px; animation: turn 140s linear infinite; }
+.orbit-spin { transform-origin: 100px 100px; animation: turn 180s linear infinite; }
 .orbit-spin .core { fill: var(--chalk); }
 .orbit-spin .ring { fill: none; stroke: var(--chalk); stroke-width: 0.9; }
 .orbit-spin .off .core { fill: none; }
 .orbit-spin .off .ring { stroke: var(--faint); }
 .think-dial { width: min(70vw, 280px); height: auto; display: block; margin: 0 auto; }
 .think-dial.small { width: min(52vw, 210px); }
-.think-dial .ringB { transform-origin: 200px 200px; animation: turn 38s linear infinite; }
-.think-dial .ringC { transform-origin: 200px 200px; animation: turn 24s linear infinite reverse; }
-.think-dial .ringD { transform-origin: 200px 200px; animation: turn 14s linear infinite; }
-.think-dial .arm { transform-origin: 200px 200px; animation: search 17s ease-in-out infinite; }
-.think-dial .ping { fill: none; stroke: var(--chalk); stroke-width: 1; vector-effect: non-scaling-stroke; transform-origin: 200px 200px; animation: ping 3.6s ease-out infinite; opacity: 0; }
-.think-dial .ping.p1 { animation-delay: 1.2s; }
-.think-dial .ping.p2 { animation-delay: 2.4s; }
-@keyframes ping { 0% { transform: scale(0.8); opacity: 0.8; } 100% { transform: scale(10.5); opacity: 0; } }
-@keyframes search {
-  0% { transform: rotate(-135deg); } 14% { transform: rotate(-18deg); } 29% { transform: rotate(74deg); }
-  44% { transform: rotate(-62deg); } 60% { transform: rotate(118deg); } 76% { transform: rotate(22deg); }
-  88% { transform: rotate(-96deg); } 100% { transform: rotate(-135deg); }
+.think-dial .ringB { transform-origin: 200px 200px; animation: turn 48s linear infinite; }
+.think-dial .ringC { transform-origin: 200px 200px; animation: turn 34s linear infinite reverse; }
+.think-dial .ringD { transform-origin: 200px 200px; animation: turn 24s linear infinite; }
+.think-dial .arm { transform-origin: 200px 200px; animation: search 21s ease-in-out infinite; }
+.think-dial .ping { fill: none; stroke: var(--chalk); stroke-width: 1; vector-effect: non-scaling-stroke; transform-origin: 200px 200px; animation: ping 5.4s ease-out infinite; opacity: 0; }
+.think-dial .ping.p1 { animation-delay: 1.8s; }
+.think-dial .ping.p2 { animation-delay: 3.6s; }
+@keyframes ping {
+  0% { transform: scale(0.8); opacity: 0; }
+  18% { opacity: 0.32; }
+  100% { transform: scale(10.5); opacity: 0; }
 }
-.ripple { fill: none; stroke: var(--chalk); stroke-width: 1.2; transform-origin: 200px 200px; animation: ripple 850ms ease-out forwards; }
-@keyframes ripple { from { transform: scale(0.96); opacity: 0.9; } to { transform: scale(1.14); opacity: 0; } }
-.dialbox.thunk { animation: thunk 220ms ease-out; }
-@keyframes thunk { 30% { transform: translateY(3px) scale(0.992); } }
+@keyframes search {
+  0%, 100% { transform: rotate(-135deg); }
+  32% { transform: rotate(36deg); }
+  50% { transform: rotate(12deg); }
+  70% { transform: rotate(112deg); }
+}
+.ripple { fill: none; stroke: var(--chalk); stroke-width: 0.9; transform-origin: 200px 200px; animation: ripple 850ms ease-out forwards; }
+@keyframes ripple { from { transform: scale(0.99); opacity: 0.48; } to { transform: scale(1.10); opacity: 0; } }
 .label.demo { text-align: center; opacity: 0.8; }
 
 /* the question, its terms and its date */
@@ -203,7 +205,7 @@ body[data-wm="0"] .watermark { opacity: 0; }
 
 @media (prefers-reduced-motion: reduce) {
   .view { animation: none; }
-  .pulse, .dot.spending, .orbit-spin, .watermark, .rise, .think-dial .ring, .think-dial .arm, .think-dial .ping, .ripple, .dialbox.thunk { animation: none; }
-  .star, .figure, .reading, .rank { transition: none; }
+  .pulse, .dot.spending, .orbit-spin, .watermark, .rise, .tick-ring, .think-dial .ring, .think-dial .arm, .think-dial .ping, .ripple { animation: none; }
+  .watermark, .figure, .reading, .hint, .rank { transition: none; }
 }
 @media (max-height: 640px) { .center { gap: 18px; } .lockup { width: min(52vw, 220px); } }

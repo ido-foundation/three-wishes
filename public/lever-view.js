@@ -11,10 +11,10 @@ const REST = 'A dial, scrambled. Turn it, or press Reveal, to see your answer.';
 
 const CHARGE = 300; // degrees of finger travel round the dial that make it let go
 const RING_DIR = { B: 1, C: -1, D: 1 }; // the rings turn against each other
-const RING_TURNS = { B: 2, C: 2, D: 3 }; // whole extra turns in the finale
-const RING_SECS = { B: 1.5, C: 2.0, D: 2.5 }; // when each one locks
-const ARM_DELAY = 0.45;
-const END_SECS = 2.7;
+const RING_TURNS = { B: 1, C: 1, D: 2 }; // whole extra turns in the finale
+const RING_SECS = { B: 1.25, C: 1.85, D: 2.45 }; // when each one locks
+const ARM_DELAY = 0.7;
+const END_SECS = 2.65;
 
 const easeOut = (x) => 1 - (1 - clamp(x, 0, 1)) ** 3;
 const wrap360 = (d) => ((d % 360) + 360) % 360;
@@ -36,12 +36,13 @@ export function mountLever({ question, answer, revealed = false, onReveal = () =
   const chargeEl = svg.querySelector('#dial-charge');
   svg.setAttribute('aria-label', revealed ? model.aria : REST);
 
-  const figure = h('div', { class: `figure${revealed ? '' : ' hidden'}` });
-  const setFigure = (text) => {
-    figure.replaceChildren(text, model.unit ? h('span', { class: 'unit' }, model.unit) : '');
-    figure.dataset.size = text.length > 9 ? 'xs' : text.length > 6 ? 's' : 'm';
-  };
-  setFigure(model.figure);
+  const figure = h(
+    'div',
+    { class: `figure${revealed ? '' : ' hidden'}`, 'aria-hidden': 'true' },
+    model.figure,
+    model.unit ? h('span', { class: 'unit' }, model.unit) : null,
+  );
+  figure.dataset.size = model.figure.length > 9 ? 'xs' : model.figure.length > 6 ? 's' : 'm';
   box.append(figure);
 
   const reading = h(
@@ -99,7 +100,6 @@ export function mountLever({ question, answer, revealed = false, onReveal = () =
     armAngle = model.angle;
     paint();
     setCharge(0);
-    setFigure(model.figure);
     figure.classList.remove('hidden');
     reading.classList.remove('hidden');
     hint.classList.add('hidden');
@@ -124,7 +124,6 @@ export function mountLever({ question, answer, revealed = false, onReveal = () =
     }
     const lockedAt = { B: false, C: false, D: false };
     const t0 = performance.now();
-    let figureShown = false;
     const step = (now) => {
       const t = (now - t0) / 1000;
       for (const k of ['B', 'C', 'D']) {
@@ -133,19 +132,10 @@ export function mountLever({ question, answer, revealed = false, onReveal = () =
           lockedAt[k] = true;
           ripple({ B: 112, C: 88, D: 66 }[k]);
           native.haptic(k === 'D' ? 'heavy' : 'rigid');
-          if (k === 'D') {
-            box.classList.add('thunk');
-            setTimeout(() => box.classList.remove('thunk'), 220);
-          }
         }
       }
       const s = spring(Math.max(0, t - ARM_DELAY));
       armAngle = armFrom + (model.angle - armFrom) * s;
-      if (t >= ARM_DELAY && !figureShown) {
-        figureShown = true;
-        figure.classList.remove('hidden');
-      }
-      if (figureShown && model.kind === 'binary') setFigure(percent(model.f * clamp(s, 0, 1)));
       paint();
       if (t < END_SECS) requestAnimationFrame(step);
       else finish();

@@ -60,7 +60,7 @@ export function loadConfig(overrides = {}, env = process.env) {
       timeoutMs: num(e, 'JEV_TIMEOUT_MS', 4000),
     },
     decider: {
-      // 'jev' | 'bedrock' | 'none'. Empty: Jev if it has a key, else Bedrock (live mode only).
+      // 'jev' | 'bedrock' | 'none'. Live mode defaults to Bedrock.
       provider: e.DECIDER || '',
       model: e.DECIDER_MODEL || 'us.anthropic.claude-haiku-5-5',
       region: e.AWS_REGION || e.AWS_DEFAULT_REGION || 'us-east-1',

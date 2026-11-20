@@ -103,6 +103,8 @@ try {
   await shot(page, 'lever-rest');
   assert.equal(await page.locator('.figure.hidden').count(), 1);
   await page.click('button:has-text("Reveal")');
+  await page.waitForSelector('.dialbox .ripple');
+  assert.equal(await page.locator('.figure.hidden').count(), 1, 'the figure stays hidden while the first ring locks');
   await page.waitForSelector('.figure:not(.hidden)');
   await page.waitForTimeout(3300);
   await shot(page, 'lever-yes');

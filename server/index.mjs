@@ -54,7 +54,7 @@ export async function createApp(overrides = {}, { now = Date.now, log = console,
   const db = openDb(config.dbPath);
   const live = config.mode === 'live';
 
-  const decider = live ? config.decider.provider || (config.jev.apiKey ? 'jev' : 'bedrock') : 'fake';
+  const decider = live ? config.decider.provider || 'bedrock' : 'fake';
   const jev =
     deps.jev !== undefined
       ? deps.jev
@@ -69,7 +69,7 @@ export async function createApp(overrides = {}, { now = Date.now, log = console,
     deps.forecaster ?? (live ? makeForecaster(config) : makeFakeForecaster({ delayMs: config.fakeDelayMs ?? 3000, now }));
   const push = deps.push ?? (await makePush({ db, config, now, log }));
   const auth = makeAuth({ db, config, now });
-  const gate = makeGate({ db, config, jev, forecaster, now, log });
+  const gate = makeGate({ db, config, jev, requireDecider: decider === 'bedrock', forecaster, now, log });
   const wishes = makeWishes({ db, config, forecaster, push, now, log });
   const cards = makeCards({ publicDir: PUBLIC });
   const redeemLimit = makeLimiter(now);
@@ -331,8 +331,8 @@ export async function createApp(overrides = {}, { now = Date.now, log = console,
     server,
     decider,
     deps: { auth, gate, wishes, push, forecaster, jev, cards },
-    async listen(port = config.port) {
-      await new Promise((ok) => server.listen(port, ok));
+    async listen(port = config.port, host) {
+      await new Promise((ok) => server.listen(port, host, ok));
       if (!deps.noTimer) timer = setInterval(() => wishes.tick().catch(() => {}), config.pollMs);
       timer?.unref?.();
       return server.address().port;

@@ -145,7 +145,7 @@ export function validateDraft(draft, { now, minDays, maxDays }) {
   return { ok: true, question: q, notes: hints, rewrite: { from: draft.title_as_written ?? null, reason: draft.title_reason ?? null } };
 }
 
-export function makeGate({ db, config, jev, forecaster, now = Date.now, log = console }) {
+export function makeGate({ db, config, jev, requireDecider, forecaster, now = Date.now, log = console }) {
   const take = makeLimiter(now);
 
   async function check(userId, rawText) {
@@ -175,7 +175,7 @@ export function makeGate({ db, config, jev, forecaster, now = Date.now, log = co
     const pre = rulesPrecheck(text);
     if (pre) return no(pre);
 
-    if (jev) {
+    if (jev || requireDecider) {
       try {
         const read = readJev(await jev.decide(buildJevRequest(text, config.jev.model)));
         // "Vague" is not final: the sharpening step may still settle on a date and an event, and
@@ -183,7 +183,7 @@ export function makeGate({ db, config, jev, forecaster, now = Date.now, log = co
         if (read.fine < config.jev.minProb && read.reason !== 'vague') return no(read.reason);
       } catch (err) {
         log.warn?.(`form check unavailable: ${err.code ?? err.name}`);
-        // fall through: the sharpening step and the rules below still apply
+        if (requireDecider) throw new HttpError(503, 'unavailable', 'The line is busy. Try again in a moment.');
       }
     }
 

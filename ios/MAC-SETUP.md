@@ -1,9 +1,8 @@
 # Bringing the iPhone app up on a Mac
 
-This is a hand-off. The app in `ios/` was written on a Linux machine with no Xcode, so **it has never been
-compiled or run**. Your job on the Mac: get it to build, put it on an iPhone, and fix whatever the first build
-turns up. `ios/README.md` explains the app and the push-notification and TestFlight set-up; this file is the
-checklist.
+Use this checklist to build III, run it in the simulator, and install it on an iPhone. The build, launch,
+and invitation sign-in were verified on an iPhone 18 Pro simulator with Xcode 27.2 and iOS 27.2.
+See `ios/README.md` for push-notification and TestFlight setup.
 
 ## 0. What you have and what you need
 
@@ -24,24 +23,19 @@ xcodebuild -project III.xcodeproj -scheme III \
   CODE_SIGNING_ALLOWED=NO build 2>&1 | tail -40
 ```
 
-**Expected:** `BUILD SUCCEEDED`. If it does not, the messages are the work. Fix them in `ios/III/*.swift` or
-`ios/project.yml` (re-run `xcodegen` after changing the project file). Things most likely to need a touch, because
-they could only be syntax-checked:
-
-| Where | Why it might fail |
-|---|---|
-| `IIIApp.swift` | `@UIApplicationDelegateAdaptor` with a plain `NSObject` delegate |
-| `WebView.swift` | `UIViewRepresentable` and `WKScriptMessageHandler` signatures; `isInspectable` needs iOS 16.4 (guarded) |
-| `Bridge.swift` | `@Published` set from delegate callbacks; Swift 6 toolchain warnings in Swift 5 mode (set `SWIFT_VERSION: "5.0"`; ignore warnings, fix errors) |
-| `Sharer.swift` | a captured `var` mutated in a closure (a `Box` class is used to avoid it) |
-| `Assets.xcassets` | single-size `AppIcon` (needs Xcode 14+), `UILaunchScreen` colour and image names |
-| `Info.plist` | `$(APP_URL)` and `$(APNS_ENV)` come from build settings in `project.yml` |
+**Expected:** `BUILD SUCCEEDED`. Re-run `xcodegen` whenever you change `project.yml`.
 
 ## 2. Run it in the simulator
 
+Run `npm run preview:live` from the repository root and leave it running. The Debug simulator build
+uses `http://localhost:8788`. The live preview uses AWS credentials from the standard credential
+chain and reads the Deus token from `~/.config/foundation-forecasts/token` by default. It prints
+invitation codes and allows one forecast per UTC day with no retries. Run the commands below from
+`ios/` and substitute an available simulator name for `iPhone 15` if needed.
+
 ```bash
-open -a Simulator
 xcrun simctl list devices available | grep iPhone | head
+xcrun simctl boot 'iPhone 15'
 xcodebuild -project III.xcodeproj -scheme III \
   -destination 'platform=iOS Simulator,name=iPhone 15' \
   CODE_SIGNING_ALLOWED=NO -derivedDataPath build build
@@ -49,11 +43,12 @@ xcrun simctl install booted build/Build/Products/Debug-iphonesimulator/III.app
 xcrun simctl launch booted ai.foundationresearch.iii
 ```
 
-(Or open `III.xcodeproj` in Xcode and press Run.) The simulator cannot receive remote push; everything else works.
+To see the running device in Xcode 27, choose **Xcode > Open Developer Tool > Device Hub**. With older
+Xcode versions, open Simulator. You can also open `III.xcodeproj`, select a simulator, and press Run.
 
 ## 3. Point it at a server
 
-The app loads `APP_URL` from `ios/project.yml`. It currently names a **temporary tunnel that will be gone**. Pick one:
+Set the base `APP_URL` in `ios/project.yml` to your server's HTTPS address for device and Release builds.
 
 - **The real server** (stable https address): set `APP_URL`, re-run `xcodegen`.
 - **A server on this Mac, no spend:** from the repo root
@@ -64,8 +59,8 @@ The app loads `APP_URL` from `ios/project.yml`. It currently names a **temporary
   npm run demo              # fake forecasts, prints invitation links, http://localhost:8787
   ```
 
-  In the simulator, `APP_URL` can be `http://localhost:8787` (the plist allows local networking). For a real phone
-  use the Mac's address on the same Wi-Fi, for example `http://192.168.1.20:8787`, or `npm run demo:tunnel`.
+  For the simulator demo, pass `APP_URL=http://localhost:8787` to `xcodebuild`. For a real phone use the Mac's
+  address on the same Wi-Fi, for example `http://192.168.1.20:8787`, or `npm run demo:tunnel`.
   Demo answers are labelled as fake in the app.
 
 Any change to the web files in `public/` shows up in the app on reload, with no rebuild.
@@ -111,7 +106,7 @@ Then TestFlight: `ios/README.md`, section "TestFlight".
 
 ## Facts a new session should know
 
-- Rules the app keeps: brand = the Foundation kit, with night darkened to `#02031A` by request; the only star
+- Rules the app keeps: the Foundation kit on near-black `#040405`. The only star
   anywhere is the gold one on the lever arm; nothing the person sees names a method, model, provider or cost
   (`test/api/leak.test.mjs` checks every served file). `npm test` runs 99 tests in about 20 seconds.
 - The web app is the product; the iOS shell is thin on purpose. Do not move product logic into Swift.

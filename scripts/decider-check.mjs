@@ -6,7 +6,7 @@ import { makeJev } from '../server/adapters/jev.mjs';
 import { buildJevRequest, readJev } from '../server/gate.mjs';
 
 const config = loadConfig({ mode: 'live' });
-const provider = config.decider.provider || (config.jev.apiKey ? 'jev' : 'bedrock');
+const provider = config.decider.provider || 'bedrock';
 const decider = provider === 'jev' ? makeJev(config.jev) : await makeBedrockDecider(config.decider);
 
 // [question, expected]: 'fine' or the reason it should be turned away.

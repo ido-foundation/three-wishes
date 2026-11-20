@@ -56,7 +56,7 @@ cp .env.example .env     # then set MODE=live and the values below
 | `FORECASTER_BASE_URL`, `FORECASTER_TOKEN` or `FORECASTER_TOKEN_FILE`, `FORECASTER_ORG` | The forecasting dashboard API, a token, and the organization wishes are created in. Questions appear there, owned by the token's person. |
 | `FORECASTER_DEPTH` | `light` (default), `medium`, `deep`. Deeper costs more and takes longer. |
 | `WISH_MAX_USD`, `DAILY_WISH_LIMIT`, `WISH_RETRIES` | Spend caps. A wish costs at most `WISH_MAX_USD × (1 + WISH_RETRIES)`; a day at most `DAILY_WISH_LIMIT` of those. |
-| `DECIDER` (`bedrock`, `jev`, `none`), `DECIDER_MODEL` | The decision model that checks a question's form. Empty means Jev if `JEV_API_KEY` is set, else **Bedrock**: Claude Haiku 5.5 (`us.anthropic.claude-haiku-5-5`) through a forced structured answer, using the environment's AWS role (no key to manage). |
+| `DECIDER` (`bedrock`, `jev`, `none`), `DECIDER_MODEL` | Defaults to **Bedrock** using Claude Haiku 5.5 (`us.anthropic.claude-haiku-5-5`) through a forced structured answer and the standard AWS credential chain. |
 | `JEV_API_KEY` (+ `JEV_ENDPOINT`, `JEV_MODEL`, `JEV_MIN_PROB`) | Only for `DECIDER=jev`. `JEV_MIN_PROB` is the threshold for both deciders. |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | Web Push ("Your wish is ready"). `npm run vapid` makes a pair. |
 | `PUBLIC_BASE_URL`, `TRUST_PROXY`, `ADMIN_TOKEN` | Address in share links (use https), proxy trust, and the token for `/admin/stats`. |
@@ -72,7 +72,8 @@ MODE=live node scripts/live-smoke.mjs "Will the US Federal Reserve lower its tar
 `ios/` is a native app (an Xcode project spec, ten Swift files, the icon and the launch picture): the same
 web app full screen, plus real push notifications, haptics and the iOS share sheet. It needs a Mac with
 Xcode to build; see [ios/README.md](ios/README.md) for the steps (run on your phone, push keys, TestFlight).
-It has not been compiled or run: no Mac, Xcode or iPhone was available where it was written.
+The iPhone 18 Pro simulator build uses the local backend started by `npm run preview:live`. It checks
+questions with Bedrock, sends accepted questions to Deus, and allows one forecast per day with retries off.
 
 ## Putting it on an iPhone as a Home Screen app
 

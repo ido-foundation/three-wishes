@@ -1,12 +1,12 @@
 // Prepares the kit's files for the app: strips the SVGs' embedded provenance blobs and renders the
 // Home Screen icons (the seal in chalk on night).
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import sharp from 'sharp';
+import { NIGHT } from '../public/lib/lever.js';
 
 const pub = resolve('public');
 const brand = join(pub, 'brand');
-const NIGHT = '#02031A';
 
 for (const f of ['seal-chalk', 'seal-gold', 'wordmark-chalk', 'lockup-stacked-chalk']) {
   const p = join(brand, `${f}.svg`);

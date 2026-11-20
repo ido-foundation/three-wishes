@@ -17,6 +17,7 @@
     "vapid": "node scripts/vapid.mjs",
     "demo": "node --disable-warning=ExperimentalWarning scripts/demo.mjs",
     "demo:tunnel": "node --disable-warning=ExperimentalWarning scripts/demo.mjs --tunnel",
+    "preview:live": "MODE=live DECIDER=bedrock PORT=8788 DEMO_HOST=127.0.0.1 DEMO_DB=./data/live-preview.db DAILY_WISH_LIMIT=1 WISH_MAX_USD=2 WISH_RETRIES=0 npm run demo",
     "decider-check": "node --disable-warning=ExperimentalWarning scripts/decider-check.mjs",
     "assets:ios": "node scripts/build-ios-assets.mjs"
   },

@@ -386,6 +386,23 @@ test('if the sharpening step is down, the person is told to try again and nothin
   assert.equal((await c.get('/api/me')).data.left, 3);
 });
 
+test('live Bedrock checks must succeed before a question is sent for sharpening', async (t) => {
+  let sharpened = 0;
+  const fake = fakeForecasterWith({});
+  const s = await start({ mode: 'live', decider: { provider: '' }, jev: { apiKey: 'unused' } }, {
+    jev: { decide: async () => { throw new Error('timeout'); } },
+    forecaster: { ...fake, sharpen: async (text) => { sharpened++; return fake.sharpen(text); } },
+  });
+  t.after(s.close);
+  assert.equal(s.app.decider, 'bedrock');
+  const c = s.client();
+  await c.join();
+
+  assert.equal((await c.post('/api/check', { text: Q_YES })).status, 503);
+  assert.equal(sharpened, 0);
+  assert.equal((await c.get('/api/me')).data.left, 3);
+});
+
 test('what the forecaster adds beyond the answer never reaches the phone or a link', async (t) => {
   const real = fakeForecasterWith({});
   const forecaster = {

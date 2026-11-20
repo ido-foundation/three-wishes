@@ -14,8 +14,8 @@ no new build, except the native pieces in `III/`.
 - A **Mac with Xcode 15 or later**, and an iPhone on iOS 16 or later.
 - An **Apple ID** to run it on your own phone (free, but the install lasts 7 days and **has no push**), or
   the **Apple Developer Program** ($99 a year) for push notifications and TestFlight.
-- An **https address** for the web app that stays up. The one in `project.yml` is a temporary tunnel
-  and will stop working; see "The address" below.
+- A stable **HTTPS address** for the web app when building for a physical phone. Debug simulator
+  builds use the local server started by `npm run preview:live`.
 
 ## Run it on your iPhone
 
@@ -111,6 +111,5 @@ channel; the web side of every message is exercised in a browser against a stand
 and the server side (device registration, the Apple provider token, sending, forgetting dead tokens)
 has automated tests that check the token's signature the way Apple does.
 
-**Not checked: that the project compiles, runs, or notifies a real phone.** No Xcode, no Mac, no iPhone and
-no Apple key were available. Expect a first build to need small fixes. Send me the compiler's messages
-and I will fix them.
+The project builds with Xcode 27.2 and runs in the iPhone 18 Pro simulator. Physical iPhone testing
+and APNs delivery are pending.

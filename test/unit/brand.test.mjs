@@ -15,12 +15,11 @@ test('flat: no gradients, glows, blurs or shadows anywhere', () => {
   for (const word of ['box-shadow', 'text-shadow', 'drop-shadow', 'blur(', 'glow']) assert.equal(all.toLowerCase().includes(word), false, word);
 });
 
-test('the palette is night, chalk and one gold; ultramarine and black never appear on screen', () => {
+test('the palette is near-black, chalk and one gold', () => {
   const hexes = new Set((css.match(/#[0-9a-f]{6}\b/gi) ?? []).map((h) => h.toUpperCase()));
-  assert.deepEqual([...hexes].sort(), ['#02031A', '#C9A865', '#F2E9E4'], "night is much darker than the kit's #06082F, by request");
+  assert.deepEqual([...hexes].sort(), ['#040405', '#C9A865', '#F2E9E4']);
   assert.equal(/#06082F/i.test(css + js), false, 'the old, lighter night is gone');
   assert.equal(/#000FA0/i.test(css + js), false, 'ultramarine is never on night');
-  assert.equal(/#03050C/i.test(css), false, 'black is for text on chalk and stone, not on night');
 });
 
 test('gold is used for the lever star and nothing else', () => {
@@ -52,8 +51,9 @@ test('only the kit logo files are used, never a typed name', () => {
   const html = readFileSync('public/index.html', 'utf8');
   assert.doesNotMatch(html, /FOUNDATION/);
   const manifest = JSON.parse(readFileSync('public/manifest.webmanifest', 'utf8'));
-  assert.equal(manifest.theme_color, '#02031A');
-  assert.equal(manifest.background_color, '#02031A');
+  assert.match(html, /name="theme-color" content="#040405"/);
+  assert.equal(manifest.theme_color, '#040405');
+  assert.equal(manifest.background_color, '#040405');
   assert.equal(manifest.name, 'III');
   assert.equal(manifest.display, 'standalone');
   assert.ok(manifest.icons.some((i) => i.purpose === 'maskable'));

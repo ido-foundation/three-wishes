@@ -1,7 +1,9 @@
+import Combine
 import Foundation
 import WebKit
 
 /// The one place the web view, notifications and links meet.
+@MainActor
 final class Bridge: ObservableObject {
     static let shared = Bridge()
 

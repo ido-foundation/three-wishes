@@ -17,12 +17,11 @@ the output only.
 
 ### Look and name
 
-- **Night is much darker than the kit's.** The kit's night is `#06082F`; by request the app uses `#02031A`,
-  a blue so deep it reads as black until it sits next to something. Everything else in the palette is the
-  kit's (chalk `#F2E9E4`, gold `#C9A865`). It is one token in `public/styles.css` and `lib/lever.js` (`NIGHT`).
+- **Near-black `#040405`** is the ground, with the kit's chalk `#F2E9E4` and gold `#C9A865`.
+  `public/styles.css` sets the interface color and `public/lib/lever.js` supplies the color for share cards and icons.
 - **No stars.** No starfield, no star markers. The only star in the app is the gold one on the lever arm,
   which is the kit's "one small star". The three questions are three discs on an orbit round the seal.
-- **A vast, faint instrument** (rings and graduations, turning once in twelve minutes) sits behind the
+- **A vast, faint instrument** (rings and graduations, turning once in about thirteen minutes) sits behind the
   gate, home and review screens, and is hidden while the dial is on screen.
 - **The name is "III"** (three questions; the Roman numerals on the kit's dials). Places to change it:
   `public/manifest.webmanifest`, `public/index.html` (title, `apple-mobile-web-app-title`, noscript),
@@ -46,7 +45,7 @@ While a question is being answered the screen says **Thinking**, over the instru
 | R3 | If a wish fails (the run fails, stops or times out), the wish is given back automatically. | `server/wishes.mjs` `settle()` |
 | R4 | Nothing about method leaves the server: results pass through an allowlist. | `server/sanitize.mjs`, `test/unit/sanitize.test.mjs` |
 | R5 | No text in the client says "Deus", "Jev", a model name, a provider, "dashboard", or a price. | `test/unit/leak.test.mjs` scans every served file and every API error |
-| R6 | Brand kit v8 only: night `#06082F`, chalk `#F2E9E4`, gold `#C9A865` as one small star, no gradients, no glows, no drop shadows, ultramarine never on night, Hanken Grotesk (the kit's free stand-in for Univers Next), sentence case, labels in spaced capitals. | `public/styles.css`, `test/unit/brand.test.mjs` |
+| R6 | Near-black `#040405` with the Foundation palette of chalk `#F2E9E4` and one small gold star `#C9A865`. Flat surfaces, Hanken Grotesk (the kit's free stand-in for Univers Next), sentence case, labels in spaced capitals. | `public/styles.css`, `test/unit/brand.test.mjs` |
 | R7 | Spend is capped: per wish and per day. When the day's cap is reached, sealing says "come back tomorrow" and no wish is spent. | `server/config.mjs`, `server/wishes.mjs` |
 | R8 | Invite only. No account, no email, no phone number, no analytics, no third-party scripts. | `server/auth.mjs` |
 
@@ -97,9 +96,9 @@ star**, the only gold on the screen. No fill, no glow, no shadow.
 Behaviour: the arm starts at rest at the lowest mark. A pull is a drag on the star (past about a
 quarter of the sweep it takes over), a tap on the dial, or the **Pull** button (for keyboard and
 screen-reader users). Let go early and it falls back to rest. The swing is a damped spring
-(stiffness 90, damping 13: one small overshoot of about 5%) over about 1.9 s; for yes/no the figure
-counts up with the arm and never shows more than the answer. With "reduce motion" the arm is
-placed at once. The dial's `aria-label` says the answer in words, but only after the pull.
+(stiffness 90, damping 13: one small overshoot of about 5%) over about 1.9 s. The answer fades in after
+all three rings lock. With "reduce motion", the dial and answer settle immediately. The dial's
+`aria-label` announces the answer after the pull.
 
 The same drawing code (`public/lib/lever.js`) makes the on-screen dial and the share picture, so
 they cannot drift apart.
@@ -124,7 +123,8 @@ From the forecasting dashboard's own rules (`docs/topic-questions.md` there), ap
 The decision model returns a probability for each reason a question is turned away: *past or already
 known*, *opinion or advice*, *private person*, *harmful*, *too vague*, *not about the future*, or
 *fine*. Over the threshold for *fine* (0.5), the question goes on; otherwise the top reason picks a
-message. If the decision model is off or fails, a rules pre-check plus the sharpening step do the same job.
+message. Live Bedrock mode requires a decision before sharpening and asks the person to try again if
+Bedrock is unavailable. The optional Jev mode can fall back to the rules and sharpening.
 
 ## 6. Architecture
 

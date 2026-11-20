@@ -2,7 +2,7 @@ import Foundation
 
 /// Settings that come from the build (see project.yml and Info.plist), not from code.
 enum Config {
-    /// Where the app lives. Must be https. Set `APP_URL` in project.yml.
+    /// Server URL from project.yml. Simulator debug builds use the local live preview.
     static var appURL: URL {
         let raw = (Bundle.main.object(forInfoDictionaryKey: "AppURL") as? String) ?? ""
         return URL(string: raw) ?? URL(string: "https://invalid.example")!

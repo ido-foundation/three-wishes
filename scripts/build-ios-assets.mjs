@@ -3,8 +3,8 @@
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import sharp from 'sharp';
+import { NIGHT } from '../public/lib/lever.js';
 
-const NIGHT = '#02031A';
 const seal = readFileSync(resolve('public/brand/seal-chalk.svg'));
 const out = resolve('ios/III/Assets.xcassets');
 

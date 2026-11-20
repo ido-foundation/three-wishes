@@ -49,7 +49,7 @@ const app = await createApp({
   // Live mode reads the dashboard from the environment; the dev dashboard and the Foundation org are the defaults here.
   forecaster: { baseUrl: process.env.FORECASTER_BASE_URL || 'https://dashboard.dev.foundationresearch.ai', org: process.env.FORECASTER_ORG || 'foundation' },
 });
-await app.listen(port);
+await app.listen(port, process.env.DEMO_HOST);
 // Keep the codes already given out; make three more only if there are none left to use.
 let codes = app.db.prepare('select code from invites where user_id is null order by created_at').all().map((r) => r.code);
 if (!codes.length) codes = app.deps.auth.createInvites({ count: 3, note: 'demo' });

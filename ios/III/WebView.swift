@@ -15,7 +15,7 @@ struct WebView: UIViewRepresentable {
         configuration.userContentController.add(context.coordinator, name: "native")
 
         let web = WKWebView(frame: .zero, configuration: configuration)
-        let night = UIColor(named: "Night") ?? UIColor(red: 0.008, green: 0.012, blue: 0.102, alpha: 1)
+        let night = UIColor(named: "Night") ?? UIColor(red: 4.0 / 255, green: 4.0 / 255, blue: 5.0 / 255, alpha: 1)
         web.isOpaque = false
         web.backgroundColor = night
         web.scrollView.backgroundColor = night

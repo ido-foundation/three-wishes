@@ -20,14 +20,14 @@ node bin/admin.mjs invite --count 3       # invitation codes
 - Exactly three questions per person; a failed run gives the question back (`server/wishes.mjs`).
 - Nothing the person sees names a method, model, provider, cost or the forecaster; all answer data goes through
   the allowlist in `server/sanitize.mjs`. `test/api/leak.test.mjs` scans every served file and response.
-- Brand: Foundation kit, night darkened to `#02031A` by request, chalk `#F2E9E4`, ONE gold star (the lever arm's).
+- Brand: Foundation kit on near-black `#040405`, chalk `#F2E9E4`, ONE gold star (the lever arm's).
   No gradients, glows, shadows, no other stars. `test/unit/brand.test.mjs`.
 - User-facing words are question / ask / answer; "wish" only exists inside the code and database.
 - The web app is the product. `ios/` is a thin native shell (push, haptics, share sheet).
 
 ## The iPhone app
 
-`ios/` has never been compiled. **If you are on a Mac, start with `ios/MAC-SETUP.md`.**
+The iPhone 18 Pro simulator build was verified with Xcode 27.2. See `ios/MAC-SETUP.md` for setup.
 
 ## Secrets and money
 

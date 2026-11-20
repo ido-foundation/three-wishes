@@ -1,5 +1,6 @@
 import UIKit
 
+@MainActor
 enum Haptics {
     /// light | medium | heavy | rigid | success | selection
     static func play(_ style: String) {

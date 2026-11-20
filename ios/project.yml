@@ -14,8 +14,8 @@ settings:
     CODE_SIGN_STYLE: Automatic
     # Choose your team in Xcode (Signing & Capabilities) or put its id here.
     DEVELOPMENT_TEAM: ""
-    # Where the app lives. https only. This address is a TEMPORARY tunnel: replace it with a stable one.
-    APP_URL: "https://medical-usr-mesh-fighting.trycloudflare.com"
+    # Set the HTTPS address of your server for device and release builds.
+    APP_URL: "https://iii.example.invalid"
 targets:
   III:
     type: application
@@ -38,6 +38,7 @@ targets:
       configs:
         Debug:
           APNS_ENV: sandbox
+          "APP_URL[sdk=iphonesimulator*]": "http://localhost:8788"
         Release:
           APNS_ENV: production
 schemes:

@@ -10,7 +10,7 @@ export const START = -135;
 export const END = 135;
 export const SWEEP = END - START;
 export const CHALK = '#F2E9E4';
-export const NIGHT = '#02031A';
+export const NIGHT = '#040405';
 export const GOLD = '#C9A865';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
