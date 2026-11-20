@@ -39,5 +39,6 @@ export const api = {
   wish: (id) => req('GET', `/api/wishes/${id}`),
   reveal: (id) => req('POST', `/api/wishes/${id}/reveal`, {}),
   push: (subscription) => req('POST', '/api/push', { subscription }),
+  device: (token, env) => req('POST', '/api/device', { token, env }),
   publicWish: (token) => req('GET', `/api/public/${token}`),
 };

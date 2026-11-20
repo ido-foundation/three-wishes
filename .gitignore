@@ -4,3 +4,9 @@ data/
 test/e2e/shots/
 *.db
 *.db-*
+ios/III.xcodeproj/
+ios/**/xcuserdata/
+ios/**/*.xcuserstate
+ios/build/
+DerivedData/
+.DS_Store

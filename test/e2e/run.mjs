@@ -231,6 +231,56 @@ try {
   await ctx3.close();
   await ctx4.close();
 
+  console.log('inside the iPhone app (a simulated native shell)');
+  const [code5] = app.deps.auth.createInvites({ count: 1 });
+  const ctx5 = await browser.newContext({ ...device, userAgent: `${device.userAgent} III-iOS/1.0`, baseURL: base });
+  await ctx5.addInitScript(() => {
+    window.__native = [];
+    window.webkit = { messageHandlers: { native: { postMessage: (m) => window.__native.push(m) } } };
+  });
+  const p5 = await newPage(ctx5);
+  const sent = () => p5.evaluate(() => window.__native);
+  await p5.goto('/');
+  await p5.waitForSelector('.lockup');
+  assert.equal(await p5.locator('.install').count(), 0, 'no "Add to Home Screen" inside the app');
+  await p5.fill('.field.code', code5);
+  await p5.click('button[type=submit]');
+  await p5.waitForSelector('textarea.field');
+  assert.ok((await sent()).some((m) => m.type === 'ready'), 'tells the shell the person is signed in');
+  await p5.fill('textarea.field', 'Will the Federal Reserve cut interest rates before the end of 2027?');
+  await p5.click('button[type=submit]');
+  await p5.waitForSelector('text=Yes, ask it');
+  await p5.click('text=Yes, ask it');
+  await p5.waitForSelector('text=Thinking');
+  assert.ok((await sent()).some((m) => m.type === 'push'), 'asks for permission to notify once there is something to wait for');
+  log('signed in, and asks for notifications after the first question');
+  await p5.evaluate(() => window.nativePush('ab'.repeat(32), 'sandbox'));
+  await p5.waitForTimeout(300);
+  assert.equal(app.db.prepare('select count(*) as n from devices').get().n, 1);
+  log("the phone's push token reaches the server");
+  await p5.waitForSelector('text=Turn the dial', { timeout: 20_000 });
+  const b5 = await p5.locator('.dialbox svg').boundingBox();
+  const [mx, my, mr] = [b5.x + b5.width / 2, b5.y + b5.height / 2, b5.width * 0.33];
+  await p5.mouse.move(mx, my - mr);
+  await p5.mouse.down();
+  for (let i = 1; i <= 40; i++) {
+    const a = (i / 40) * Math.PI * 1.7;
+    await p5.mouse.move(mx + mr * Math.sin(a), my - mr * Math.cos(a));
+  }
+  await p5.mouse.up();
+  await p5.waitForTimeout(3600);
+  const styles = (await sent()).filter((m) => m.type === 'haptic').map((m) => m.style);
+  assert.ok(styles.filter((x) => x === 'selection').length >= 5, `a click as the dial turns (${styles.join(',')})`);
+  assert.ok(styles.includes('rigid') && styles.includes('heavy') && styles.at(-1) === 'success', 'rings lock with a knock, then a success');
+  log(`haptics: ${styles.length} (clicks while turning, a knock for each ring, then success)`);
+  await p5.click('button:has-text("Share")');
+  const share = (await sent()).find((m) => m.type === 'share');
+  assert.match(share.url, /\/w\/[\w-]+$/);
+  assert.match(share.image, /\/w\/[\w-]+\/card\.png$/);
+  assert.equal(await p5.locator('text=Link copied').count(), 0, 'the native share sheet, not the clipboard');
+  log('Share opens the native sheet with the picture and the link');
+  await ctx5.close();
+
   console.log('install metadata');
   const manifest = await (await page.request.get('/manifest.webmanifest')).json();
   assert.equal(manifest.display, 'standalone');

@@ -67,7 +67,14 @@ One real wish, end to end, capped by `WISH_MAX_USD`:
 MODE=live node scripts/live-smoke.mjs "Will the US Federal Reserve lower its target federal funds rate at its December 2026 meeting?"
 ```
 
-## Putting it on an iPhone
+## The iPhone app
+
+`ios/` is a native app (an Xcode project spec, ten Swift files, the icon and the launch picture): the same
+web app full screen, plus real push notifications, haptics and the iOS share sheet. It needs a Mac with
+Xcode to build; see [ios/README.md](ios/README.md) for the steps (run on your phone, push keys, TestFlight).
+It has not been compiled or run: no Mac, Xcode or iPhone was available where it was written.
+
+## Putting it on an iPhone as a Home Screen app
 
 A PWA needs https. For a test, a Cloudflare quick tunnel to the local port works
 (`cloudflared tunnel --url http://localhost:8787`, then set `PUBLIC_BASE_URL` to its address).

@@ -188,6 +188,16 @@ iPhone (installed PWA)  ──HTTPS──▶  server/ (Node 22, node:http, node:
 `checked → sealed → running → ready` or `→ failed` (refund). A check expires after 30 minutes.
 Polling every 15 s while anything is running; a hard timeout at `WISH_TIMEOUT_MIN` (default 45).
 
+### The iPhone app
+
+`ios/` wraps the web app in a native shell (`WKWebView`), so the page is the same and only the pieces a
+web app does badly are native: **push** through Apple's service (`server/apns.mjs`; the phone's token goes
+to `POST /api/device`), **haptics** (a click per twelve degrees of the dial, a knock per locking ring, a
+success at the end), and the **share sheet** with the picture and link. The page detects the shell by its
+user agent (`III-iOS/1.0`) and talks to it through one message handler (`public/native.js`). The shell
+keeps its own storage, so an invitation code typed in the app stays signed in. Built with XcodeGen from
+`ios/project.yml`; see `ios/README.md`. Not yet compiled: it needs Xcode.
+
 ## 7. Spend and safety
 
 - `WISH_MAX_USD` (default **2.00**) per wish, `DAILY_WISH_LIMIT` (default **25**) wishes sealed per
@@ -207,7 +217,7 @@ Polling every 15 s while anything is running; a hard timeout at `WISH_TIMEOUT_MI
 
 ## 9. Not in version 1
 
-- A native App Store build (the PWA is the iPhone app; a SwiftUI shell can load the same API).
+- App Store release. The iPhone app is a TestFlight-ready shell, not yet built or reviewed.
 - Date questions ("when will…?") and conditional questions.
 - Following up a wish; editing a sealed wish; deleting a person (the database file can be edited by hand).
 - Multiple languages (English only; the forecaster's titles are English).

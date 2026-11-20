@@ -1,9 +1,10 @@
-node_modules
-data
-.env
-test
-scripts
-docs
 *.db
 *.db-*
+.env
 .git
+data
+docs
+ios
+node_modules
+scripts
+test

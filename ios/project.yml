@@ -1,0 +1,51 @@
+# Generates III.xcodeproj on a Mac:   brew install xcodegen && cd ios && xcodegen
+# (The project file is generated, not committed: it could not be generated on the machine this was written on.)
+name: III
+options:
+  bundleIdPrefix: ai.foundationresearch
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    CODE_SIGN_STYLE: Automatic
+    # Choose your team in Xcode (Signing & Capabilities) or put its id here.
+    DEVELOPMENT_TEAM: ""
+    # Where the app lives. https only. This address is a TEMPORARY tunnel: replace it with a stable one.
+    APP_URL: "https://medical-usr-mesh-fighting.trycloudflare.com"
+targets:
+  III:
+    type: application
+    platform: iOS
+    sources:
+      - path: III
+        excludes:
+          - Info.plist
+          - III.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: ai.foundationresearch.iii
+        INFOPLIST_FILE: III/Info.plist
+        CODE_SIGN_ENTITLEMENTS: III/III.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        TARGETED_DEVICE_FAMILY: "1"
+        GENERATE_INFOPLIST_FILE: NO
+        SUPPORTS_MACCATALYST: NO
+        ENABLE_PREVIEWS: NO
+      configs:
+        Debug:
+          APNS_ENV: sandbox
+        Release:
+          APNS_ENV: production
+schemes:
+  III:
+    build:
+      targets:
+        III: all
+    run:
+      config: Debug
+    archive:
+      config: Release

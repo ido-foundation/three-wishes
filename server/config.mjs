@@ -66,6 +66,13 @@ export function loadConfig(overrides = {}, env = process.env) {
       region: e.AWS_REGION || e.AWS_DEFAULT_REGION || 'us-east-1',
       timeoutMs: num(e, 'DECIDER_TIMEOUT_MS', 8000),
     },
+    apns: {
+      keyId: e.APNS_KEY_ID || '',
+      teamId: e.APNS_TEAM_ID || '',
+      bundleId: e.APNS_BUNDLE_ID || 'ai.foundationresearch.iii',
+      key: e.APNS_KEY || '',
+      keyFile: e.APNS_KEY_FILE || '',
+    },
     vapid: {
       publicKey: e.VAPID_PUBLIC_KEY || '',
       privateKey: e.VAPID_PRIVATE_KEY || '',

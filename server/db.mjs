@@ -55,6 +55,13 @@ create table if not exists wishes(
 );
 create index if not exists wishes_user on wishes(user_id);
 create index if not exists wishes_status on wishes(status);
+create table if not exists devices(
+  token text primary key,
+  user_id integer not null,
+  env text not null,
+  created_at integer not null
+);
+create index if not exists devices_user on devices(user_id);
 create table if not exists pushes(
   endpoint text primary key,
   user_id integer not null,

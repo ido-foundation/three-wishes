@@ -3,6 +3,7 @@
 // with the arm; the gold star swings in and settles on the answer; the figure is written.
 import { START, CX, CY, arcPath, dialSvg, leverModel, lockedRings, percent, restRings, spring } from './lib/lever.js';
 import { h } from './ui.js';
+import { native } from './native.js';
 
 const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
 const NS = 'http://www.w3.org/2000/svg';
@@ -91,6 +92,7 @@ export function mountLever({ question, answer, revealed = false, onReveal = () =
   }
 
   function finish() {
+    native.haptic('success');
     done = true;
     busy = false;
     Object.assign(rings, locked);
@@ -130,6 +132,7 @@ export function mountLever({ question, answer, revealed = false, onReveal = () =
         if (!lockedAt[k] && t >= RING_SECS[k]) {
           lockedAt[k] = true;
           ripple({ B: 112, C: 88, D: 66 }[k]);
+          native.haptic(k === 'D' ? 'heavy' : 'rigid');
           if (k === 'D') {
             box.classList.add('thunk');
             setTimeout(() => box.classList.remove('thunk'), 220);
@@ -159,7 +162,7 @@ export function mountLever({ question, answer, revealed = false, onReveal = () =
   };
   svg.addEventListener('pointerdown', (e) => {
     if (done || busy) return;
-    drag = { last: angleAt(e), total: 0, at: performance.now(), base: { ...rings } };
+    drag = { last: angleAt(e), total: 0, tick: 0, at: performance.now(), base: { ...rings } };
     svg.setPointerCapture(e.pointerId);
   });
   svg.addEventListener('pointermove', (e) => {
@@ -168,6 +171,11 @@ export function mountLever({ question, answer, revealed = false, onReveal = () =
     const d = wrap180(a - drag.last);
     drag.last = a;
     drag.total += Math.abs(d);
+    drag.tick += Math.abs(d);
+    if (drag.tick >= 12) {
+      drag.tick -= 12;
+      native.haptic('selection'); // a click for every twelve degrees, like a safe
+    }
     rings.B += d * 1;
     rings.C -= d * 0.7;
     rings.D += d * 1.4;

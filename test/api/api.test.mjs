@@ -431,6 +431,19 @@ test('Web Push: only real subscriptions are kept, and "ready" notifies once', as
   assert.deepEqual(sent.filter((x) => x[0] === 'notify'), [['notify', 1, data.wish.id]]);
 });
 
+test('the native app registers its phone, and only a signed-in person can', async (t) => {
+  const seen = [];
+  const push = { enabled: false, publicKey: null, subscribe: () => false, registerDevice: (uid, token, env) => (/^[0-9a-f]{64}$/.test(token) && ['sandbox', 'production'].includes(env) ? (seen.push([uid, env]), true) : false), notify: async () => 0 };
+  const s = await start({}, { push });
+  t.after(s.close);
+  const c = s.client();
+  assert.equal((await c.post('/api/device', { token: 'ab'.repeat(32), env: 'sandbox' })).status, 401);
+  await c.join();
+  assert.equal((await c.post('/api/device', { token: 'nope', env: 'sandbox' })).status, 400);
+  assert.equal((await c.post('/api/device', { token: 'ab'.repeat(32), env: 'sandbox' })).status, 200);
+  assert.deepEqual(seen, [[1, 'sandbox']]);
+});
+
 test('the real Web Push store rejects bad subscriptions and drops dead ones', async (t) => {
   const { makePush } = await import('../../server/push.mjs');
   const { openDb } = await import('../../server/db.mjs');

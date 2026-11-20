@@ -204,6 +204,13 @@ export async function createApp(overrides = {}, { now = Date.now, log = console,
       }
     }
 
+    if (method === 'POST' && pathname === '/api/device') {
+      const u = user(req);
+      const { token, env } = await readJson(req);
+      if (!push.registerDevice?.(u.id, token, env)) throw new HttpError(400, 'bad_device', 'That did not work.');
+      return send(res, 200, { ok: true });
+    }
+
     if (method === 'POST' && pathname === '/api/push') {
       const u = user(req);
       const { subscription } = await readJson(req);

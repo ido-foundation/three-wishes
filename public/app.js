@@ -1,6 +1,7 @@
 import { api, ApiError } from './api.js';
 import { h, dotsRow, lockup, seal, wordmark, backButton, wishOrbit, thinkingDial, watermark, KIND_LABEL } from './ui.js';
 import { mountLever } from './lever-view.js';
+import { native } from './native.js';
 import { leverModel, fmtDate, percent } from './lib/lever.js';
 
 const app = document.getElementById('app');
@@ -8,6 +9,9 @@ const standalone = () => navigator.standalone === true || window.matchMedia('(di
 const isIos = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
 
 const state = { me: null, cancel: null, draft: '' };
+
+// The iPhone app hands over its push token through this, once it knows the person is signed in.
+window.nativePush = (token, env) => api.device(token, env).catch(() => {});
 
 function mount(view) {
   document.body.dataset.wm = view.classList.contains('nowm') ? '0' : '1';
@@ -30,6 +34,7 @@ const errText = (e) => (e instanceof ApiError ? e.message : 'Something went wron
 
 async function loadMe() {
   state.me = await api.me();
+  native.ready();
   return state.me;
 }
 
@@ -57,7 +62,7 @@ function gateView({ prefill = '', error = '' } = {}) {
   } }, input, msg, go);
   const kids = [lockup(), form];
   kids[0].classList.add('rise');
-  if (isIos() && !standalone()) kids.push(installHint());
+  if (isIos() && !standalone() && !native.available) kids.push(installHint());
   mount(view('center', ...kids));
 }
 
@@ -253,6 +258,7 @@ function waitingView(wish, { justSealed = false } = {}) {
     kids.push(h('div', { class: 'actions' }, b));
   }
   mount(view('stack nowm', ...kids));
+  if (justSealed) native.requestPush(); // the natural moment to ask: they now have something to wait for
 
   const check = async () => {
     try {
@@ -356,6 +362,10 @@ async function share(button, wish, token) {
   const cardUrl = `${url}/card.png`;
   const label = button.textContent;
   try {
+    if (native.available) {
+      native.share(url, cardUrl);
+      return;
+    }
     if (navigator.share) {
       let files;
       try {
@@ -394,7 +404,7 @@ async function shareView(token) {
 
 async function boot() {
   document.body.prepend(watermark());
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+  if (!native.available && 'serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
 
   const path = location.pathname;
   const sharePath = /^\/w\/([A-Za-z0-9_-]{8,64})$/.exec(path);
@@ -419,7 +429,7 @@ async function boot() {
 
   // On an iPhone, the Home Screen app keeps its own storage, apart from Safari's. So after an
   // invitation link opens in Safari, show the code: typing it in the installed app works for a day.
-  if (invite && isIos() && !standalone()) return installView(invite[1].toUpperCase());
+  if (invite && isIos() && !standalone() && !native.available) return installView(invite[1].toUpperCase());
 
   const wishId = new URLSearchParams(location.search).get('w');
   if (wishId) {
