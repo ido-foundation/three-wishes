@@ -31,12 +31,6 @@ export function makeCards({ publicDir = resolve('public') } = {}) {
   const brand = join(publicDir, 'brand');
   const seal = dataUri(join(brand, 'seal-chalk.svg'), 'image/svg+xml');
   const wordmark = dataUri(join(brand, 'wordmark-chalk.svg'), 'image/svg+xml');
-  let stars = null;
-  try {
-    stars = dataUri(join(brand, 'night-stars.jpg'), 'image/jpeg');
-  } catch {
-    /* the picture still works on flat night */
-  }
   const cache = new Map();
 
   function svg(question, answer, { demo = false } = {}) {
@@ -49,7 +43,6 @@ export function makeCards({ publicDir = resolve('public') } = {}) {
     const dial = 1.6;
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="Hanken Grotesk, sans-serif">
 <rect width="${W}" height="${H}" fill="${NIGHT}"/>
-${stars ? `<image href="${stars}" x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="xMidYMid slice"/>` : ''}
 <image href="${seal}" x="508" y="72" width="64" height="62"/>
 ${q}
 <g transform="translate(${540 - 200 * dial} ${800 - 200 * dial}) scale(${dial})">${dialInner(model)}</g>

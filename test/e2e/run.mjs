@@ -55,7 +55,7 @@ try {
   await page.fill('.field.code', code);
   await page.click('button[type=submit]');
   await page.waitForSelector('textarea.field');
-  assert.match(await page.locator('.label').first().innerText(), /3 questions left/i);
+  assert.match(await page.locator('.label').first().innerText(), /Three questions left/i);
   await shot(page, 'home');
   log('the right code opens the app with three questions');
 

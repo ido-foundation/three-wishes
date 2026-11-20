@@ -1,5 +1,5 @@
 import { api, ApiError } from './api.js';
-import { h, starsRow, lockup, seal, wordmark, backButton, wishOrbit, thinkingDial, starfield, KIND_LABEL } from './ui.js';
+import { h, dotsRow, lockup, seal, wordmark, backButton, wishOrbit, thinkingDial, watermark, KIND_LABEL } from './ui.js';
 import { mountLever } from './lever-view.js';
 import { leverModel, fmtDate, percent } from './lib/lever.js';
 
@@ -10,6 +10,7 @@ const isIos = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
 const state = { me: null, cancel: null, draft: '' };
 
 function mount(view) {
+  document.body.dataset.wm = view.classList.contains('nowm') ? '0' : '1';
   state.cancel?.();
   state.cancel = null;
   app.replaceChildren(view);
@@ -55,6 +56,7 @@ function gateView({ prefill = '', error = '' } = {}) {
     }
   } }, input, msg, go);
   const kids = [lockup(), form];
+  kids[0].classList.add('rise');
   if (isIos() && !standalone()) kids.push(installHint());
   mount(view('center', ...kids));
 }
@@ -85,7 +87,7 @@ function homeView({ text = state.draft, error = '' } = {}) {
   const me = state.me;
   const kids = [
     wishOrbit(me.left, me.total),
-    h('p', { class: 'label centered' }, me.left > 0 ? `${me.left} ${me.left === 1 ? 'question' : 'questions'} left` : ''),
+    h('p', { class: 'label centered' }, me.left > 0 ? `${['No questions', 'One question', 'Two questions', 'Three questions'][Math.min(me.left, 3)]} left` : ''),
   ];
 
   if (me.left > 0) {
@@ -152,7 +154,7 @@ function openWish(w) {
 async function checkFlow(text) {
   state.draft = text;
   mount(
-    view('center', thinkingDial(true), h('p', { class: 'label pulse', role: 'status' }, 'Thinking')),
+    view('center nowm', thinkingDial(true), h('p', { class: 'label pulse', role: 'status' }, 'Thinking')),
   );
   let r;
   try {
@@ -185,11 +187,11 @@ function reviewView(text, r) {
   const left = state.me.left;
   const status = h('p', { class: 'error', role: 'alert' });
   const make = h('button', { class: 'btn', type: 'button' }, 'Yes, ask it');
-  const stars = starsRow(left, state.me.total);
+  const stars = dotsRow(left, state.me.total);
   make.addEventListener('click', async () => {
     make.disabled = true;
     status.textContent = '';
-    stars.replaceWith(starsRow(left, state.me.total, { spending: true }));
+    stars.replaceWith(dotsRow(left, state.me.total, { spending: true }));
     try {
       const { wish } = await api.seal(r.checkId);
       await loadMe();
@@ -233,7 +235,7 @@ function waitingView(wish, { justSealed = false } = {}) {
   const me = state.me;
   const kids = [
     backButton(() => homeView()),
-    starsRow(me.left, me.total),
+    dotsRow(me.left, me.total),
     h('div', { class: 'grow' }),
     h('div', { class: 'center-ring' }, thinkingDial()),
     h('p', { class: 'label pulse', role: 'status' }, 'Thinking'),
@@ -250,7 +252,7 @@ function waitingView(wish, { justSealed = false } = {}) {
     });
     kids.push(h('div', { class: 'actions' }, b));
   }
-  mount(view('stack', ...kids));
+  mount(view('stack nowm', ...kids));
 
   const check = async () => {
     try {
@@ -333,7 +335,7 @@ function leverView(wish, { shared = false, token = null, back = () => homeView()
   else actions.replaceChildren(pullBtn);
 
   mount(
-    view('stack',
+    view('stack nowm',
       shared ? seal() : backButton(back),
       h('p', { class: 'title small clamp' }, wish.question.title),
       (wish.demo ?? state.me?.demo) ? h('p', { class: 'label demo' }, 'Demo answer · not a real forecast') : null,
@@ -391,7 +393,7 @@ async function shareView(token) {
 /* ───────── start ───────── */
 
 async function boot() {
-  document.body.prepend(starfield());
+  document.body.prepend(watermark());
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
 
   const path = location.pathname;

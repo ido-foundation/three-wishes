@@ -1,4 +1,5 @@
-/* Foundation kit v8: night, chalk, one small gold star. Flat: no gradients, glows or shadows.
+/* Foundation kit v8, with one change by request: night is much darker than the kit's #06082F.
+   Night, chalk, and one small gold star (the lever's). Flat: no gradients, glows or shadows.
    Hanken Grotesk stands in for Univers Next (kit: "Google templates use Hanken Grotesk"). */
 @font-face { font-family: "Hanken Grotesk"; font-weight: 300; src: url(/brand/fonts/HankenGrotesk-Light.ttf) format("truetype"); font-display: swap; }
 @font-face { font-family: "Hanken Grotesk"; font-weight: 400; src: url(/brand/fonts/HankenGrotesk-Regular.ttf) format("truetype"); font-display: swap; }
@@ -6,7 +7,7 @@
 @font-face { font-family: "Hanken Grotesk"; font-weight: 600; src: url(/brand/fonts/HankenGrotesk-SemiBold.ttf) format("truetype"); font-display: swap; }
 
 :root {
-  --night: #06082F;
+  --night: #02031A;
   --chalk: #F2E9E4;
   --gold: #C9A865;
   --muted: rgba(242, 233, 228, 0.68);
@@ -22,7 +23,7 @@
 html { background: var(--night); }
 html, body { margin: 0; min-height: 100%; }
 body {
-  background: var(--night) url(/brand/night-stars.jpg) center top / cover no-repeat fixed;
+  background: var(--night);
   color: var(--chalk);
   font-family: "Hanken Grotesk", system-ui, -apple-system, sans-serif;
   font-weight: 400;
@@ -69,11 +70,13 @@ body {
 .seal { width: 44px; height: 44px; display: block; margin: 0 auto; }
 
 /* wishes: three four-point stars, lit or spent */
-.stars { display: flex; gap: 22px; justify-content: center; align-items: center; margin: 14px 0 4px; }
-.star { width: 26px; height: 26px; transition: opacity 700ms ease, transform 700ms ease; }
-.star path { fill: var(--chalk); stroke: var(--chalk); stroke-width: 1; }
-.star.spent path { fill: none; stroke: var(--faint); }
-.star.spending { animation: spend 1.4s ease-in-out infinite; }
+.dots { display: flex; gap: 22px; justify-content: center; align-items: center; margin: 14px 0 4px; }
+.dot { width: 26px; height: 26px; transition: opacity 700ms ease, transform 700ms ease; }
+.dot .core { fill: var(--chalk); }
+.dot .ring { fill: none; stroke: var(--chalk); stroke-width: 0.9; }
+.dot.spent .core { fill: none; }
+.dot.spent .ring { stroke: var(--faint); }
+.dot.spending { animation: spend 1.4s ease-in-out infinite; }
 @keyframes spend { 50% { opacity: 0.25; } }
 
 /* fields and buttons */
@@ -142,16 +145,19 @@ body {
 @keyframes breathe { 50% { opacity: 0.4; } }
 
 .center-ring { display: flex; justify-content: center; }
-/* backdrop and the instrument's own motion */
-.starfield { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
-.twinkle { animation: twinkle 5s ease-in-out infinite; }
-.twinkle.t1 { animation-delay: -1.7s; animation-duration: 6.5s; }
-.twinkle.t2 { animation-delay: -3.4s; animation-duration: 4.2s; }
-@keyframes twinkle { 50% { opacity: 0.12; } }
+/* backdrop: a vast, faint instrument behind the page, and the instrument's own motion */
+.watermark { position: fixed; width: 170vw; max-width: 1100px; left: calc(50% - min(85vw, 550px)); top: calc(56% - min(85vw, 550px)); z-index: 0; pointer-events: none; opacity: 0.085; transition: opacity 900ms ease; animation: wmin 3s ease-out both, turn 700s linear infinite; }
+.watermark * { vector-effect: non-scaling-stroke; }
+body[data-wm="0"] .watermark { opacity: 0; }
+@keyframes wmin { from { opacity: 0; } }
+.rise { animation: rise 1800ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } }
 .orbit { width: min(46vw, 190px); height: auto; display: block; margin: 4px auto 0; }
 .orbit-spin { transform-origin: 100px 100px; animation: turn 140s linear infinite; }
-.orbit-spin .on { fill: var(--chalk); stroke: var(--chalk); stroke-width: 1; }
-.orbit-spin .off { fill: none; stroke: var(--faint); stroke-width: 1; }
+.orbit-spin .core { fill: var(--chalk); }
+.orbit-spin .ring { fill: none; stroke: var(--chalk); stroke-width: 0.9; }
+.orbit-spin .off .core { fill: none; }
+.orbit-spin .off .ring { stroke: var(--faint); }
 .think-dial { width: min(70vw, 280px); height: auto; display: block; margin: 0 auto; }
 .think-dial.small { width: min(52vw, 210px); }
 .think-dial .ringB { transform-origin: 200px 200px; animation: turn 38s linear infinite; }
@@ -197,7 +203,7 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .view { animation: none; }
-  .tick-ring, .pulse, .star.spending, .twinkle, .orbit-spin, .think-dial .ring, .think-dial .arm, .think-dial .ping, .ripple, .dialbox.thunk { animation: none; }
+  .pulse, .dot.spending, .orbit-spin, .watermark, .rise, .think-dial .ring, .think-dial .arm, .think-dial .ping, .ripple, .dialbox.thunk { animation: none; }
   .star, .figure, .reading, .rank { transition: none; }
 }
 @media (max-height: 640px) { .center { gap: 18px; } .lockup { width: min(52vw, 220px); } }

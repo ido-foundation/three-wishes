@@ -10,7 +10,7 @@ export const START = -135;
 export const END = 135;
 export const SWEEP = END - START;
 export const CHALK = '#F2E9E4';
-export const NIGHT = '#06082F';
+export const NIGHT = '#02031A';
 export const GOLD = '#C9A865';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -256,7 +256,7 @@ export function ringsMarkup(rot, { id = 'dial' } = {}) {
     const [x, y] = polar(66, a);
     sats += `<circle cx="${x}" cy="${y}" r="3" fill="${CHALK}"/><circle cx="${x}" cy="${y}" r="7" fill="none" stroke="${CHALK}" stroke-width="0.6" opacity="0.6"/>`;
   }
-  const D = `${line(66, 0.7, 0.55)}${line(50, 0.5, 0.3)}${sats}<path d="${starPath(6.5, CX, CY - 66)}" fill="${CHALK}"/>`;
+  const D = `${line(66, 0.7, 0.55)}${line(50, 0.5, 0.3)}${sats}<circle cx="${CX}" cy="${CY - 66}" r="4.2" fill="${CHALK}"/><circle cx="${CX}" cy="${CY - 66}" r="8" fill="none" stroke="${CHALK}" stroke-width="0.8"/>`;
 
   const g = (k, body) => `<g id="${id}-${k}" class="ring ring${k}" transform="rotate(${r1(rot[k])} ${CX} ${CY})">${body}</g>`;
   return (

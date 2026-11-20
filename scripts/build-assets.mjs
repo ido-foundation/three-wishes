@@ -1,12 +1,12 @@
-// Prepares the kit's files for the app: strips the SVGs' embedded provenance blobs, cuts the
-// star background to phone size, and renders the Home Screen icons (seal in chalk on night).
+// Prepares the kit's files for the app: strips the SVGs' embedded provenance blobs and renders the
+// Home Screen icons (the seal in chalk on night).
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import sharp from 'sharp';
 
 const pub = resolve('public');
 const brand = join(pub, 'brand');
-const NIGHT = '#06082F';
+const NIGHT = '#02031A';
 
 for (const f of ['seal-chalk', 'seal-gold', 'wordmark-chalk', 'lockup-stacked-chalk']) {
   const p = join(brand, `${f}.svg`);
@@ -14,12 +14,6 @@ for (const f of ['seal-chalk', 'seal-gold', 'wordmark-chalk', 'lockup-stacked-ch
   s = s.replace(/<metadata>[\s\S]*?<\/metadata>/g, '').replace(/\sxmlns:c2pa="[^"]*"/g, '');
   writeFileSync(p, s);
   console.log('cleaned', f, `${(s.length / 1024).toFixed(1)} KB`);
-}
-
-const src = resolve('scripts/src/night-stars-9x16-src.png');
-if (existsSync(src)) {
-  await sharp(src).resize(1080, 1920).jpeg({ quality: 86, mozjpeg: true }).toFile(join(brand, 'night-stars.jpg'));
-  console.log('night-stars.jpg');
 }
 
 mkdirSync(join(pub, 'icons'), { recursive: true });

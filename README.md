@@ -101,7 +101,7 @@ server/adapters/             jev, forecaster (dashboard API), fakes
 server/og.mjs                the share picture (also the link preview)
 public/lib/lever.js          the lever: geometry and drawing, shared by the phone and the picture
 public/app.js, lever-view.js the screens and the pull
-public/brand/                the Foundation kit's files, used as they are (Hanken Grotesk stands in for Univers Next)
+public/brand/                the Foundation kit's files, used as they are (Hanken Grotesk stands in for Univers Next; the night blue is darker than the kit's, by request)
 ```
 
 ## What has and has not been checked

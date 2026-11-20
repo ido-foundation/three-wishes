@@ -1,7 +1,7 @@
 // Rule R6: the kit's rules, checked so a later edit cannot quietly break them.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 // Comments may name the rules ("no glows"); only code is checked.
@@ -17,7 +17,8 @@ test('flat: no gradients, glows, blurs or shadows anywhere', () => {
 
 test('the palette is night, chalk and one gold; ultramarine and black never appear on screen', () => {
   const hexes = new Set((css.match(/#[0-9a-f]{6}\b/gi) ?? []).map((h) => h.toUpperCase()));
-  assert.deepEqual([...hexes].sort(), ['#06082F', '#C9A865', '#F2E9E4']);
+  assert.deepEqual([...hexes].sort(), ['#02031A', '#C9A865', '#F2E9E4'], "night is much darker than the kit's #06082F, by request");
+  assert.equal(/#06082F/i.test(css + js), false, 'the old, lighter night is gone');
   assert.equal(/#000FA0/i.test(css + js), false, 'ultramarine is never on night');
   assert.equal(/#03050C/i.test(css), false, 'black is for text on chalk and stone, not on night');
 });
@@ -51,8 +52,9 @@ test('only the kit logo files are used, never a typed name', () => {
   const html = readFileSync('public/index.html', 'utf8');
   assert.doesNotMatch(html, /FOUNDATION/);
   const manifest = JSON.parse(readFileSync('public/manifest.webmanifest', 'utf8'));
-  assert.equal(manifest.theme_color, '#06082F');
-  assert.equal(manifest.background_color, '#06082F');
+  assert.equal(manifest.theme_color, '#02031A');
+  assert.equal(manifest.background_color, '#02031A');
+  assert.equal(manifest.name, 'III');
   assert.equal(manifest.display, 'standalone');
   assert.ok(manifest.icons.some((i) => i.purpose === 'maskable'));
 });
@@ -73,4 +75,12 @@ test('text a person sees is set as text, never as HTML', () => {
   assert.ok(uses <= 5, `${uses} innerHTML uses`); // fixed drawings: the arrow, the hint, the orbit, the waiting dial
   const view = readFileSync('public/lever-view.js', 'utf8');
   assert.equal([...view.matchAll(/innerHTML\s*=/g)].length, 1, 'only the dial, whose text is escaped');
+});
+
+test('the only star anywhere is the gold one on the lever arm', () => {
+  const uses = [...js.matchAll(/starPath\(/g)].length;
+  assert.equal(uses, 2, 'the definition and the arm: no stars in the starfield, the markers, the rings or the icons');
+  assert.doesNotMatch(css, /starfield|twinkle/i);
+  assert.equal(existsSync('public/brand/night-stars.jpg'), false, 'no star backdrop file');
+  assert.doesNotMatch(css, /night-stars|background[^;{}]*url\(/, 'a flat background, no picture');
 });

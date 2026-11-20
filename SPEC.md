@@ -15,11 +15,24 @@ people through invitations, in the style of Instinct, and it is meant to spread 
 says how an answer was reached: no sources, no reasoning, no model, no cost, no method. It shows
 the output only.
 
+### Look and name
+
+- **Night is much darker than the kit's.** The kit's night is `#06082F`; by request the app uses `#02031A`,
+  a blue so deep it reads as black until it sits next to something. Everything else in the palette is the
+  kit's (chalk `#F2E9E4`, gold `#C9A865`). It is one token in `public/styles.css` and `lib/lever.js` (`NIGHT`).
+- **No stars.** No starfield, no star markers. The only star in the app is the gold one on the lever arm,
+  which is the kit's "one small star". The three questions are three discs on an orbit round the seal.
+- **A vast, faint instrument** (rings and graduations, turning once in twelve minutes) sits behind the
+  gate, home and review screens, and is hidden while the dial is on screen.
+- **The name is "III"** (three questions; the Roman numerals on the kit's dials). Places to change it:
+  `public/manifest.webmanifest`, `public/index.html` (title, `apple-mobile-web-app-title`, noscript),
+  `public/sw.js` (fallback notification title) and `server/push.mjs`. An installed icon keeps the name it
+  was added with, so re-add it after a rename.
+
 ### Words people see
 
 The app says **question**, **ask** and **answer**, never "wish" (the working name of the idea). Internally
-the code, the database and the API still say "wish". The Home Screen name is still "3 wishes" and is open
-(section 10). The question is shown as the forecasting dashboard shows it: **Yes / No**, **One of several**
+the code, the database and the API still say "wish". The Home Screen name is "III" (see above). The question is shown as the forecasting dashboard shows it: **Yes / No**, **One of several**
 or **A number**; **Resolves on** a date; **Resolution criteria**; and, when the sharpening step reworded
 what was typed, "You wrote: …" and why. The answer screen has **How it resolves** (the same criteria).
 While a question is being answered the screen says **Thinking**, over the instrument searching.
@@ -205,6 +218,6 @@ Polling every 15 s while anything is running; a hard timeout at `WISH_TIMEOUT_MI
 2. The per-wish and daily **spend numbers**.
 3. A **service identity** on the dashboard for the app (today it uses the shared dev token; its
    questions appear in the owner's dashboard). A dedicated organization would keep wishes apart.
-4. The app's **name** on the Home Screen (currently "3 wishes") and its domain.
+4. The app's **name** on the Home Screen (now "III", proposed) and its domain.
 5. Whether each person may **invite others** (`INVITES_PER_USER`).
 6. A real-iPhone pass: install flow, Web Push, share sheet, haptics.

@@ -31,7 +31,7 @@ export async function makePush({ db, config, now = Date.now, log = console }) {
     async notify(userId, { wishId }) {
       if (!enabled) return 0;
       const subs = db.prepare('select * from pushes where user_id = ?').all(userId);
-      const payload = JSON.stringify({ title: '3 wishes', body: 'Your answer is ready.', url: `/?w=${wishId}` });
+      const payload = JSON.stringify({ title: 'III', body: 'Your answer is ready.', url: `/?w=${wishId}` });
       let sent = 0;
       for (const s of subs) {
         try {
