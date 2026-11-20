@@ -148,7 +148,7 @@ export async function createApp(overrides = {}, { now = Date.now, log = console,
   function meView(u) {
     return {
       left: wishes.remaining(u.id),
-      total: config.wishesPerPerson,
+      total: wishes.total(u.id),
       wishes: wishes.forUser(u.id),
       invites: auth.givenInvites(u.id),
       push: { enabled: push.enabled, key: push.publicKey },

@@ -9,7 +9,7 @@ export async function start(overrides = {}, deps = {}) {
   const clock = { t: T0 };
   const now = () => clock.t;
   const app = await createApp(
-    { mode: 'fake', dbPath: ':memory:', fakeDelayMs: 0, adminToken: 'admin-secret', publicBaseUrl: 'http://127.0.0.1:1', ...overrides },
+    { mode: 'fake', dbPath: ':memory:', fakeDelayMs: 0, adminToken: 'admin-secret', publicBaseUrl: 'http://127.0.0.1:1', unlimitedQuestions: false, ...overrides },
     { now, log: quiet, deps: { noTimer: true, ...deps } },
   );
   const port = await app.listen(0);

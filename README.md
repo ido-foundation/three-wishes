@@ -1,6 +1,6 @@
 # 3 wishes
 
-An invite-only iPhone app. Three questions about the future, answered on a lever. The only brand
+An invite-only iPhone app for questions about the future, answered on a lever. The only brand
 on screen is the logo; nothing says who we are, what we do or how an answer was made.
 
 The product and technical spec is in [SPEC.md](SPEC.md). This file is how to run it.
@@ -56,6 +56,7 @@ cp .env.example .env     # then set MODE=live and the values below
 | `FORECASTER_BASE_URL`, `FORECASTER_TOKEN` or `FORECASTER_TOKEN_FILE`, `FORECASTER_ORG` | The forecasting dashboard API, a token, and the organization wishes are created in. Questions appear there, owned by the token's person. |
 | `FORECASTER_DEPTH` | `light` (default), `medium`, `deep`. Deeper costs more and takes longer. |
 | `WISH_MAX_USD`, `DAILY_WISH_LIMIT`, `WISH_RETRIES` | Spend caps. A wish costs at most `WISH_MAX_USD × (1 + WISH_RETRIES)`; a day at most `DAILY_WISH_LIMIT` of those. |
+| `UNLIMITED_QUESTIONS` | Each person can keep asking by default. Set to `0` to restore the three-question lifetime limit. |
 | `DECIDER` (`bedrock`, `jev`, `none`), `DECIDER_MODEL` | Defaults to **Bedrock** using Claude Haiku 5.5 (`us.anthropic.claude-haiku-5-5`) through a forced structured answer and the standard AWS credential chain. |
 | `JEV_API_KEY` (+ `JEV_ENDPOINT`, `JEV_MODEL`, `JEV_MIN_PROB`) | Only for `DECIDER=jev`. `JEV_MIN_PROB` is the threshold for both deciders. |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | Web Push ("Your wish is ready"). `npm run vapid` makes a pair. |

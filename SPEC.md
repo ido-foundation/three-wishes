@@ -4,8 +4,8 @@ Version 1 · 20 November 2026 · status: built (see README for what was verified
 
 ## 1. What it is
 
-An invite-only iPhone app. Each person gets **three wishes**: three questions about the future,
-answered by Foundation's forecasting model. The answer is shown on a **lever**, a dial with a lever
+An invite-only iPhone app for questions about the future, answered by Foundation's forecasting model.
+The answer is shown on a **lever**, a dial with a lever
 arm, and can be shared as a picture or a link.
 
 It is a marketing stunt (Ido, with Sam Lessin's "I like it"): it is given to a small, chosen set of
@@ -20,7 +20,7 @@ the output only.
 - **Near-black `#040405`** is the ground, with the kit's chalk `#F2E9E4` and gold `#C9A865`.
   `public/styles.css` sets the interface color and `public/lib/lever.js` supplies the color for share cards and icons.
 - **No stars.** No starfield, no star markers. The only star in the app is the gold one on the lever arm,
-  which is the kit's "one small star". The three questions are three discs on an orbit round the seal.
+  which is the kit's "one small star". With a lifetime quota, discs on the orbit show questions left.
 - **A vast, faint instrument** (rings and graduations, turning once in about thirteen minutes) sits behind the
   gate, home and review screens, and is hidden while the dial is on screen.
 - **The name is "III"** (three questions; the Roman numerals on the kit's dials). Places to change it:
@@ -40,7 +40,7 @@ While a question is being answered the screen says **Thinking**, over the instru
 
 | # | Rule | Where it is enforced |
 |---|------|----------------------|
-| R1 | Exactly three wishes per person, ever. A wish is spent only when the person seals it. | `server/wishes.mjs`, in one database transaction |
+| R1 | Questions are unlimited by default. With `UNLIMITED_QUESTIONS=0`, a question counts toward the lifetime quota when the person seals it. | `server/wishes.mjs`, in one database transaction |
 | R2 | A question that is not in a form we can answer never costs a wish and never reaches the forecaster. | `server/gate.mjs` |
 | R3 | If a wish fails (the run fails, stops or times out), the wish is given back automatically. | `server/wishes.mjs` `settle()` |
 | R4 | Nothing about method leaves the server: results pass through an allowlist. | `server/sanitize.mjs`, `test/unit/sanitize.test.mjs` |

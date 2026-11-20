@@ -90,12 +90,13 @@ function installHint() {
 
 function homeView({ text = state.draft, error = '' } = {}) {
   const me = state.me;
+  const limited = me.left !== null;
   const kids = [
     wishOrbit(me.left, me.total),
-    h('p', { class: 'label centered' }, me.left > 0 ? `${['No questions', 'One question', 'Two questions', 'Three questions'][Math.min(me.left, 3)]} left` : ''),
+    limited ? h('p', { class: 'label centered' }, me.left > 0 ? `${['No questions', 'One question', 'Two questions', 'Three questions'][Math.min(me.left, 3)]} left` : '') : null,
   ];
 
-  if (me.left > 0) {
+  if (me.left !== 0) {
     const ta = h('textarea', {
       class: 'field', rows: '3', maxlength: '300', placeholder: 'Ask about the future', 'aria-label': 'Your question',
       enterkeyhint: 'go', 'data-autofocus': '',
@@ -143,7 +144,7 @@ function wishRow(w) {
         ? h('span', { class: 'fig' }, (({ figure, unit }) => (unit ? `${figure} ${unit}` : figure))(leverModel(w.question, w.answer)))
         : h('span', { class: 'fig state' }, 'Reveal')
       : w.status === 'failed'
-        ? h('span', { class: 'fig state' }, 'Returned')
+        ? h('span', { class: 'fig state' }, state.me.left === null ? 'Couldn’t answer' : 'Returned')
         : h('span', { class: 'fig state pulse' }, 'Thinking');
   return h('button', { class: 'row', type: 'button', onclick: () => openWish(w) }, h('span', { class: 'q' }, w.question?.title ?? ''), fig);
 }
@@ -196,7 +197,7 @@ function reviewView(text, r) {
   make.addEventListener('click', async () => {
     make.disabled = true;
     status.textContent = '';
-    stars.replaceWith(dotsRow(left, state.me.total, { spending: true }));
+    stars?.replaceWith(dotsRow(left, state.me.total, { spending: true }));
     try {
       const { wish } = await api.seal(r.checkId);
       await loadMe();
@@ -227,7 +228,7 @@ function reviewView(text, r) {
       ...(r.notes ?? []).map((n) => h('p', { class: 'body note' }, n)),
       h('div', { class: 'grow' }),
       stars,
-      h('p', { class: 'body' }, left === 1 ? 'This is your last question.' : 'This uses one of your questions.'),
+      left === null ? null : h('p', { class: 'body' }, left === 1 ? 'This is your last question.' : 'This uses one of your questions.'),
       status,
       h('div', { class: 'actions' }, make, h('button', { class: 'btn text', type: 'button', onclick: () => homeView({ text }) }, 'Change it')),
     ),
@@ -283,9 +284,9 @@ function failedView(wish) {
     view('stack',
       backButton(() => homeView()),
       h('div', { class: 'grow' }),
-      h('p', { class: 'label' }, 'Returned'),
+      state.me.left === null ? null : h('p', { class: 'label' }, 'Returned'),
       h('p', { class: 'title' }, "That one couldn't be answered."),
-      h('p', { class: 'body' }, "You haven't used a question."),
+      state.me.left === null ? null : h('p', { class: 'body' }, "You haven't used a question."),
       h('p', { class: 'body' }, wish.question?.title ?? ''),
       h('div', { class: 'grow' }),
       h('div', { class: 'actions' }, h('button', { class: 'btn', type: 'button', onclick: () => homeView() }, 'Ask again')),

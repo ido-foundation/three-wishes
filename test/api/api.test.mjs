@@ -160,6 +160,40 @@ test('sealing spends exactly one wish; a check seals once; three wishes, never f
   assert.equal((await c.get('/api/me')).data.wishes.length, 3);
 });
 
+test('unlimited mode lets an existing account keep asking after its third question', async (t) => {
+  const s = await start();
+  t.after(s.close);
+  const c = s.client();
+  await c.join();
+  for (let i = 0; i < 3; i++) assert.equal((await c.wish(Q_YES)).status, 200);
+  assert.equal((await c.get('/api/me')).data.left, 0);
+
+  s.app.config.unlimitedQuestions = true;
+  const fourth = await c.wish(Q_YES);
+  assert.equal(fourth.status, 200);
+  assert.equal(fourth.data.left, null);
+  const { left, total, wishes } = (await c.get('/api/me')).data;
+  assert.deepEqual([left, total, wishes.length], [null, null, 4]);
+});
+
+test('the poller does not launch a checked question twice while the first launch is pending', async (t) => {
+  let launches = 0;
+  let finish;
+  const pending = new Promise((resolve) => { finish = resolve; });
+  const s = await start({}, { forecaster: fakeForecasterWith({ forecast: () => { launches++; return pending; } }) });
+  t.after(s.close);
+  const c = s.client();
+  await c.join();
+  const { data } = await c.wish(Q_YES);
+  try {
+    await s.tick();
+    assert.equal(launches, 1);
+  } finally {
+    finish('test-forecast');
+  }
+  assert.equal((await c.get(`/api/wishes/${data.wish.id}`)).data.wish.status, 'running');
+});
+
 test('a check expires, belongs to its person, and cannot be forged', async (t) => {
   const s = await start();
   t.after(s.close);

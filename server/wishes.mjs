@@ -6,10 +6,16 @@ import { ownWish, publicWish, sanitizeAnswer } from './sanitize.mjs';
 const MAX_LAUNCH_ATTEMPTS = 3;
 
 export function makeWishes({ db, config, forecaster, push, now = Date.now, log = console }) {
-  const total = (userId) => db.prepare('select wishes_total as n from users where id = ?').get(userId)?.n ?? 0;
+  const total = (userId) => config.unlimitedQuestions
+    ? null
+    : db.prepare('select wishes_total as n from users where id = ?').get(userId)?.n ?? 0;
   const spent = (userId) =>
     db.prepare('select count(*) as n from wishes where user_id = ? and refunded = 0').get(userId).n;
-  const remaining = (userId) => Math.max(0, total(userId) - spent(userId));
+  const remaining = (userId) => {
+    const limit = total(userId);
+    return limit === null ? null : Math.max(0, limit - spent(userId));
+  };
+  const launching = new Set();
 
   /** Spends one wish on a checked question. All or nothing. */
   function seal(userId, checkId) {
@@ -21,7 +27,7 @@ export function makeWishes({ db, config, forecaster, push, now = Date.now, log =
       if (!check || check.used || t - check.created_at > config.checkTtlMin * 60_000) {
         throw new HttpError(410, 'expired', 'That question has expired. Ask it again.');
       }
-      if (remaining(userId) <= 0) throw new HttpError(409, 'none_left', 'You have asked all three questions.');
+      if (remaining(userId) === 0) throw new HttpError(409, 'none_left', 'You have asked all three questions.');
       const today = db
         .prepare('select count(*) as n from wishes where sealed_at >= ?')
         .get(startOfUtcDay(t)).n;
@@ -43,15 +49,18 @@ export function makeWishes({ db, config, forecaster, push, now = Date.now, log =
 
   async function launch(id) {
     const w = db.prepare('select * from wishes where id = ?').get(id);
-    if (!w || w.status !== 'sealed' || w.forecast_id) return;
-    db.prepare('update wishes set launch_attempts = launch_attempts + 1 where id = ?').run(id);
+    if (!w || w.status !== 'sealed' || w.forecast_id || launching.has(id)) return;
+    launching.add(id);
     try {
+      db.prepare('update wishes set launch_attempts = launch_attempts + 1 where id = ?').run(id);
       const forecastId = await forecaster.forecast(JSON.parse(w.question_json));
       db.prepare("update wishes set forecast_id = ?, status = 'running' where id = ?").run(forecastId, id);
     } catch (err) {
       const attempts = w.launch_attempts + 1;
       log.warn?.(`launch failed (${attempts}): ${err.code ?? err.name}`);
       if (attempts >= MAX_LAUNCH_ATTEMPTS) fail(id, 'launch');
+    } finally {
+      launching.delete(id);
     }
   }
 
@@ -115,6 +124,7 @@ export function makeWishes({ db, config, forecaster, push, now = Date.now, log =
   const row = (userId, id) => db.prepare('select * from wishes where id = ? and user_id = ?').get(String(id), userId);
 
   return {
+    total,
     remaining,
     seal,
     tick,

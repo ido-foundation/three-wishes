@@ -39,6 +39,7 @@ export function loadConfig(overrides = {}, env = process.env) {
     invitesPerUser: num(e, 'INVITES_PER_USER', 0),
     maxHorizonDays: num(e, 'MAX_HORIZON_DAYS', 1095),
     minHorizonDays: num(e, 'MIN_HORIZON_DAYS', 1),
+    unlimitedQuestions: e.UNLIMITED_QUESTIONS !== '0',
     wishesPerPerson: 3,
     checkTtlMin: 30,
     reentryHours: 24,

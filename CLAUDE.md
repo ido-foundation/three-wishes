@@ -1,6 +1,6 @@
 # 3 wishes / "III"
 
-Invite-only iPhone app: three questions about the future, answered by Foundation's forecasting model, shown on a
+An invite-only iPhone app for questions about the future, answered by Foundation's forecasting model and shown on a
 dial with a gold star. Read `SPEC.md` first (product, rules, architecture). `README.md` has run/test/deploy.
 
 ## Commands
@@ -17,7 +17,7 @@ node bin/admin.mjs invite --count 3       # invitation codes
 
 ## Rules that must keep holding
 
-- Exactly three questions per person; a failed run gives the question back (`server/wishes.mjs`).
+- Questions are unlimited by default. `UNLIMITED_QUESTIONS=0` restores the three-question lifetime quota (`server/wishes.mjs`).
 - Nothing the person sees names a method, model, provider, cost or the forecaster; all answer data goes through
   the allowlist in `server/sanitize.mjs`. `test/api/leak.test.mjs` scans every served file and response.
 - Brand: Foundation kit on near-black `#040405`, chalk `#F2E9E4`, ONE gold star (the lever arm's).

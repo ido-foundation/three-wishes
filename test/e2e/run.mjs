@@ -55,9 +55,9 @@ try {
   await page.fill('.field.code', code);
   await page.click('button[type=submit]');
   await page.waitForSelector('textarea.field');
-  assert.match(await page.locator('.label').first().innerText(), /Three questions left/i);
+  assert.equal(await page.locator('.orbit-spin .ring').count(), 0);
   await shot(page, 'home');
-  log('the right code opens the app with three questions');
+  log('the right code opens the app without a question counter');
 
   console.log('a question we cannot answer');
   await page.fill('textarea.field', 'Which is the prettier city, Paris or Rome?');
@@ -65,7 +65,7 @@ try {
   await page.waitForSelector('text=Change it');
   await shot(page, 'refused');
   assert.match(await page.locator('.title').innerText(), /opinion/i);
-  assert.equal((await (await page.request.get('/api/me')).json()).left, 3);
+  assert.equal((await (await page.request.get('/api/me')).json()).wishes.length, 0);
   log('turned away, and no question was used');
   await page.click('text=Change it');
 
@@ -98,7 +98,7 @@ try {
   await page.click('text=Yes, ask it');
   await page.waitForSelector('text=Thinking');
   await shot(page, 'waiting');
-  log('asked; one star goes out');
+  log('the question moves to Thinking');
   await page.waitForSelector('text=Turn the dial', { timeout: 20_000 });
   await shot(page, 'lever-rest');
   assert.equal(await page.locator('.figure.hidden').count(), 1);
@@ -136,8 +136,8 @@ try {
   await page.waitForSelector("text=couldn't be answered", { timeout: 30_000 });
   await shot(page, 'returned');
   const afterFail = await (await page.request.get('/api/me')).json();
-  assert.equal(afterFail.left, 2);
-  log('failed, returned: two questions left');
+  assert.equal(afterFail.left, null);
+  log('failed: the person can ask again');
   await page.click('text=Ask again');
 
   console.log('a choice question');
@@ -167,7 +167,7 @@ try {
   assert.ok((await page.locator('.rank li').count()) >= 3);
   log('turned with a finger, the dial locks and the ring is cut by option');
 
-  console.log('a number question, the last one');
+  console.log('a number question, the third one');
   await page.click('button.back');
   await page.fill('textarea.field', 'How much will a barrel of Brent crude cost on 30 June 2027?');
   await page.click('button[type=submit]');
@@ -180,10 +180,10 @@ try {
   await shot(page, 'lever-number');
   assert.match(await page.locator('.reading .sub').innerText(), /80% likely between/);
   await page.click('button.back');
-  await page.waitForSelector("text=You've asked all three.");
+  await page.waitForSelector('textarea.field');
   await shot(page, 'home-done');
-  assert.equal(await page.locator('textarea.field').count(), 0);
-  log('three questions asked: the input is gone');
+  assert.equal(await page.locator('textarea.field').count(), 1);
+  log('three questions answered: the input remains available');
 
   const over = await page.evaluate(async () => (await fetch('/api/check', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: 'Will the Fed cut rates in 2027?' }) })).status);
   assert.equal(over, 200); // checking is free; sealing is what is limited
@@ -192,8 +192,8 @@ try {
     const s = await fetch('/api/seal', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ checkId: r.checkId }) });
     return s.status;
   });
-  assert.equal(seal, 409);
-  log('a fourth wish is refused by the server');
+  assert.equal(seal, 200);
+  log('a fourth question is launched');
 
   console.log('a shared link, in a fresh browser');
   const ctx2 = await browser.newContext({ ...device, baseURL: base });

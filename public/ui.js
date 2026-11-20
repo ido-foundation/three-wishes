@@ -32,6 +32,7 @@ export function dotIcon({ spent = false, spending = false } = {}) {
 
 /** Three markers: the questions. `left` are lit; the rest are rings only. `spending` makes the next one breathe. */
 export function dotsRow(left, total = 3, { spending = false } = {}) {
+  if (left === null) return null;
   const row = h('div', { class: 'dots', role: 'img', 'aria-label': `${left} of ${total} questions left` });
   for (let i = 0; i < total; i++) {
     const lit = i < left;
@@ -57,7 +58,7 @@ export const KIND_LABEL = { binary: 'Yes / No', categorical: 'One of several', n
 
 /** The three questions as markers on an orbit round the seal. Lit ones are questions left. */
 export function wishOrbit(left, total = 3) {
-  const s = svg('svg', { viewBox: '0 0 200 200', class: 'orbit', role: 'img', 'aria-label': `${left} of ${total} questions left` });
+  const s = svg('svg', { viewBox: '0 0 200 200', class: 'orbit', role: 'img', 'aria-label': left === null ? 'Foundation' : `${left} of ${total} questions left` });
   const at = (r, deg) => [100 + r * Math.sin((deg * Math.PI) / 180), 100 - r * Math.cos((deg * Math.PI) / 180)];
   let ticks = '';
   for (let i = 0; i < 72; i++) {

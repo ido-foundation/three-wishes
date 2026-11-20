@@ -54,7 +54,7 @@ await app.listen(port, process.env.DEMO_HOST);
 let codes = app.db.prepare('select code from invites where user_id is null order by created_at').all().map((r) => r.code);
 if (!codes.length) codes = app.deps.auth.createInvites({ count: 3, note: 'demo' });
 
-console.log(`\n3 questions, ${live ? 'LIVE (real forecasts, real spend)' : 'demo (fake forecasts, no spend)'}${live ? `, form check: ${app.decider}` : ''}`);
+console.log(`\nIII, ${live ? 'LIVE (real forecasts, real spend)' : 'demo (fake forecasts, no spend)'}${live ? `, form check: ${app.decider}` : ''}`);
 console.log(`\n  open on the phone:\n`);
 for (const c of codes) console.log(`    ${base}/i/${c}`);
 console.log(`\n  codes: ${codes.join('  ')}  (each is one person; Ctrl-C to stop)\n`);

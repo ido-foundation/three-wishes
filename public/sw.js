@@ -1,5 +1,5 @@
 // Service worker: keeps the app opening when the network is slow, and receives "your answer is ready".
-const CACHE = 'app-v4';
+const CACHE = 'app-v5';
 const SHELL = [
   '/', '/styles.css', '/app.js', '/api.js', '/ui.js', '/lever-view.js', '/native.js', '/lib/lever.js',
   '/brand/lockup-stacked-chalk.svg', '/brand/seal-chalk.svg', '/brand/wordmark-chalk.svg',
